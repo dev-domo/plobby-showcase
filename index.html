@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plobby 쇼케이스</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  :root {
+    --green: #0E7A4E;
+    --green-soft: #E6F4EC;
+    --text: #1C1F23;
+    --text-sub: #6B7280;
+    --track: #E5E7EB;
+    --bg: #FFFFFF;
+    --card: #F7F8F9;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: "Pretendard", -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: 3vh;
+    padding: 5vh 5vw;
+    overflow: hidden;
+  }
+
+  header { display: flex; flex-direction: column; gap: 1.6vh; }
+  .meta { display: flex; align-items: center; gap: 1vw; font-size: 2.2vh; color: var(--text-sub); }
+  .chip { background: var(--card); padding: .5vh 1vw; border-radius: 1vh; font-weight: 600; }
+  h1 { font-size: 5.5vh; font-weight: 700; }
+  .count-row { display: flex; align-items: baseline; gap: 1vw; }
+  .count { font-size: 9vh; font-weight: 800; color: var(--green); font-variant-numeric: tabular-nums; }
+  .target { font-size: 4vh; color: var(--text-sub); font-weight: 500; }
+  .percent { margin-left: auto; font-size: 4vh; font-weight: 700; color: var(--green); }
+  .track { height: 3vh; background: var(--track); border-radius: 999px; overflow: hidden; }
+  .bar { height: 100%; width: 0; background: var(--green); border-radius: 999px; transition: width 1.2s cubic-bezier(.2,.8,.2,1); }
+
+  main { display: grid; grid-template-columns: 1.1fr 1fr; gap: 3vw; min-height: 0; }
+  .label { font-size: 2.4vh; font-weight: 700; color: var(--text-sub); margin-bottom: 1.5vh; }
+
+  .latest { display: flex; flex-direction: column; min-height: 0; }
+  .latest-card {
+    flex: 1; min-height: 0; position: relative; border-radius: 3vh; overflow: hidden; background: var(--card);
+  }
+  .latest-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .latest-info {
+    position: absolute; left: 0; right: 0; bottom: 0; padding: 8vh 2.5vw 3vh;
+    background: linear-gradient(transparent, rgba(0,0,0,.55) 35%, rgba(0,0,0,.8)); color: #fff;
+  }
+  .latest-info .name { font-size: 4.5vh; font-weight: 700; }
+  .latest-info .sub { font-size: 2.6vh; opacity: .9; margin-top: .6vh; }
+  .latest-info .plus { font-size: 6vh; font-weight: 800; color: #7CE0A8; position: absolute; right: 2.5vw; bottom: 3vh; }
+  .latest-card.new { animation: pop 1.4s ease; }
+  @keyframes pop {
+    0% { transform: scale(.94); box-shadow: 0 0 0 0 rgba(14,122,78,.6); }
+    40% { transform: scale(1.02); box-shadow: 0 0 0 2vh rgba(14,122,78,.25); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(14,122,78,0); }
+  }
+  .tag { display: inline-block; padding: .4vh .8vw; border-radius: 1vh; font-weight: 700; font-size: .85em; vertical-align: middle; margin-right: .6vw; }
+  .tag.tag.plogging { background: #E6F4EC; color: #0E7A4E; }
+  .tag.tag.plobbing { background: #E3F0FB; color: #1565C0; }
+  .row .t .tag { font-size: 1.9vh; }
+  .latest-info .tag { font-size: 2.4vh; margin-bottom: 1vh; }
+  .empty { display: grid; place-items: center; height: 100%; font-size: 3vh; color: var(--text-sub); }
+
+  .recent { display: flex; flex-direction: column; min-height: 0; }
+  .recent-list { display: flex; flex-direction: column; gap: 1.6vh; overflow: hidden; }
+  .row { display: flex; align-items: center; gap: 1.4vw; padding: 1.2vh 1vw; border-radius: 2vh; background: var(--card); }
+  .row img, .row .ph { width: 9vh; height: 9vh; border-radius: 1.6vh; object-fit: cover; flex: none; background: var(--track); }
+  .row .t { flex: 1; min-width: 0; }
+  .row .t b { display: block; font-size: 2.6vh; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row .t span { font-size: 2.1vh; color: var(--text-sub); }
+  .row .n { font-size: 3vh; font-weight: 800; color: var(--green); }
+
+  footer { display: flex; justify-content: space-between; font-size: 2vh; color: var(--text-sub); }
+  .status::before { content: "●"; margin-right: .5vw; color: var(--green); }
+  .status.off::before { color: #D14343; }
+</style>
+</head>
+<body>
+  <header>
+    <div class="meta"><span class="chip" id="dday">-</span><span id="period"></span></div>
+    <h1 id="title">공통 목표를 불러오는 중이에요</h1>
+    <div class="count-row">
+      <span class="count" id="count">0</span>
+      <span class="target" id="target"></span>
+      <span class="percent" id="percent"></span>
+    </div>
+    <div class="track"><div class="bar" id="bar"></div></div>
+  </header>
+
+  <main>
+    <section class="latest">
+      <div class="label">방금 올라온 기록</div>
+      <div class="latest-card" id="latest"><div class="empty">아직 올라온 기록이 없어요</div></div>
+    </section>
+    <section class="recent">
+      <div class="label">최근 기록</div>
+      <div class="recent-list" id="recent"></div>
+    </section>
+  </main>
+
+  <footer>
+    <span>Plobby · 함께 줍는 바다</span>
+    <span class="status" id="status">실시간 연결 중</span>
+  </footer>
+
+<script>
+const SUPABASE_URL = "https://mgruxkyludsbuemgjlkd.supabase.co";
+const SUPABASE_KEY = "sb_publishable_i2KRZCQ09UuKSZECmr49Fw_plQFp-vu";
+const IMAGE_BUCKET = "Plobby Image Bucket";
+const POLL_MS = 5000;
+const RECENT_LIMIT = 6;
+
+let goal = null;
+let shownCount = 0;
+let lastTopID = null;
+
+const $ = (id) => document.getElementById(id);
+
+async function query(path) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
+  });
+  if (!res.ok) throw new Error(`${res.status}`);
+  return res.json();
+}
+
+function photoURL(key) {
+  return `${SUPABASE_URL}/storage/v1/object/public/${encodeURIComponent(IMAGE_BUCKET)}/${key.split("/").map(encodeURIComponent).join("/")}`;
+}
+
+function escapeHTML(text) {
+  return String(text).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+function monthDay(iso) {
+  const d = new Date(iso);
+  return `${d.getMonth() + 1}월 ${d.getDate()}일`;
+}
+
+function timeAgo(iso) {
+  const sec = Math.max(0, (Date.now() - new Date(iso)) / 1000);
+  if (sec < 60) return "방금";
+  if (sec < 3600) return `${Math.floor(sec / 60)}분 전`;
+  if (sec < 86400) return `${Math.floor(sec / 3600)}시간 전`;
+  return monthDay(iso);
+}
+
+async function fetchGoal() {
+  const now = new Date().toISOString();
+  const rows = await query(`goal_progress?select=goal_id,title,target_count,starts_at,ends_at,collected_count,achieved_at,achieved_count&starts_at=lte.${now}&ends_at=gt.${now}&order=starts_at.desc&limit=1`);
+  return rows[0] ?? null;
+}
+
+async function fetchRecords(g) {
+  const select = "id,title,record_type,created_at,record_photos(storage_key,photo_type,sort_order),users!records_user_id_fkey(profiles(nickname)),record_trash(quantity)";
+  return query(`records?select=${select}&ended_at=gte.${g.starts_at}&ended_at=lt.${g.ends_at}&deleted_at=is.null&order=created_at.desc&limit=${RECENT_LIMIT}`.replaceAll("+", "%2B"));
+}
+
+function toRecord(row) {
+  const photos = [...(row.record_photos ?? [])].sort((a, b) =>
+    (a.photo_type === "activity" ? 0 : 1) - (b.photo_type === "activity" ? 0 : 1) || a.sort_order - b.sort_order);
+  return {
+    id: row.id,
+    title: row.title,
+    type: row.record_type,
+    createdAt: row.created_at,
+    nickname: row.users?.profiles?.nickname ?? "플로비",
+    photo: photos[0] ? photoURL(photos[0].storage_key) : null,
+    count: (row.record_trash ?? []).reduce((sum, t) => sum + t.quantity, 0)
+  };
+}
+
+function renderGoal(g) {
+  const collected = g.achieved_at && g.achieved_count != null ? Math.max(g.collected_count, g.achieved_count) : g.collected_count;
+  const days = Math.ceil((new Date(g.ends_at) - Date.now()) / 86400000);
+  const lastDay = new Date(new Date(g.ends_at) - 1);
+
+  $("title").textContent = g.title;
+  $("dday").textContent = g.achieved_at ? "달성!" : days <= 1 ? "D-DAY" : `D-${days - 1}`;
+  $("period").textContent = `${monthDay(g.starts_at)} ~ ${monthDay(lastDay)}`;
+  $("target").textContent = `/ ${g.target_count.toLocaleString()}개`;
+  const pct = Math.min(100, (collected / g.target_count) * 100);
+  $("percent").textContent = `${Math.floor(pct)}%`;
+  $("bar").style.width = `${pct}%`;
+  animateCount(collected);
+}
+
+function animateCount(to) {
+  const from = shownCount;
+  if (from === to) { $("count").textContent = to.toLocaleString(); return; }
+  const start = performance.now();
+  const step = (t) => {
+    const p = Math.min(1, (t - start) / 1200);
+    const eased = 1 - Math.pow(1 - p, 3);
+    $("count").textContent = Math.round(from + (to - from) * eased).toLocaleString();
+    if (p < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+  shownCount = to;
+}
+
+const TYPE_NAMES = { plogging: "플로깅", plobbing: "플로빙" };
+
+function tagHTML(type) {
+  return TYPE_NAMES[type] ? `<span class="tag ${type}">${TYPE_NAMES[type]}</span>` : "";
+}
+
+function renderRecords(records) {
+  const latest = records[0];
+  const card = $("latest");
+
+  if (!latest) {
+    card.innerHTML = `<div class="empty">아직 올라온 기록이 없어요</div>`;
+  } else {
+    card.innerHTML = `
+      ${latest.photo ? `<img src="${latest.photo}" alt="">` : ""}
+      <div class="latest-info">
+        ${tagHTML(latest.type)}
+        <div class="name">${escapeHTML(latest.nickname)}</div>
+        <div class="sub">${escapeHTML(latest.title)} · ${timeAgo(latest.createdAt)}</div>
+        <div class="plus">+${latest.count}개</div>
+      </div>`;
+    if (lastTopID && lastTopID !== latest.id) {
+      card.classList.remove("new");
+      void card.offsetWidth;
+      card.classList.add("new");
+    }
+    lastTopID = latest.id;
+  }
+
+  $("recent").innerHTML = records.slice(1).map((r) => `
+    <div class="row">
+      ${r.photo ? `<img src="${r.photo}" alt="">` : `<div class="ph"></div>`}
+      <div class="t"><b>${tagHTML(r.type)}${escapeHTML(r.nickname)}</b><span>${escapeHTML(r.title)} · ${timeAgo(r.createdAt)}</span></div>
+      <div class="n">+${r.count}</div>
+    </div>`).join("");
+}
+
+async function refresh() {
+  try {
+    if (!goal || new Date(goal.ends_at) <= new Date()) {
+      goal = await fetchGoal();
+    } else {
+      goal = (await fetchGoal()) ?? goal;
+    }
+    if (!goal) {
+      $("title").textContent = "진행 중인 공통 목표가 없어요";
+      $("status").className = "status";
+      $("status").textContent = "실시간 연결 중";
+      return;
+    }
+    renderGoal(goal);
+    renderRecords((await fetchRecords(goal)).map(toRecord));
+    $("status").className = "status";
+    $("status").textContent = `실시간 연결 중 · ${new Date().toLocaleTimeString("ko-KR")}`;
+  } catch (error) {
+    $("status").className = "status off";
+    $("status").textContent = "연결이 끊겼어요. 다시 시도하는 중이에요";
+  }
+}
+
+refresh();
+setInterval(refresh, POLL_MS);
+</script>
+</body>
+</html>
