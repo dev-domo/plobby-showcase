@@ -128,7 +128,12 @@
     border-radius: 3vh; overflow: hidden; background: #111;
   }
   .frame video, .frame img.shot { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .frame video { transform: scaleX(-1); }
+  /* iPad Safari는 영상이 재생되기 전 재생 버튼을 잠깐 보여줘요. 재생이 시작될 때까지 영상을 숨기고 버튼도 감춰요. */
+  .frame video { transform: scaleX(-1); opacity: 0; transition: opacity .2s; }
+  .frame video.playing { opacity: 1; }
+  .frame video::-webkit-media-controls,
+  .frame video::-webkit-media-controls-start-playback-button,
+  .frame video::-webkit-media-controls-overlay-play-button { display: none !important; -webkit-appearance: none; }
   .frame .msg { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; color: #fff; font-size: 2.4vh; padding: 3vh; line-height: 1.5; white-space: pre-line; }
   .countdown {
     position: absolute; inset: 0; display: grid; place-items: center;
@@ -535,6 +540,7 @@ async function startPreview() {
   clearPhoto();
   $("shot").hidden = true;
   $("video").hidden = false;
+  if (stream) $("video").play().catch(() => {});
   $("countdown").hidden = true;
   setCameraActions("ready");
 
@@ -545,6 +551,7 @@ async function startPreview() {
         audio: false
       });
       $("video").srcObject = stream;
+      $("video").play().catch(() => {});
       $("cameraMsg").hidden = true;
     } catch (error) {
       $("cameraMsg").hidden = false;
@@ -554,7 +561,10 @@ async function startPreview() {
   }
 }
 
+$("video").addEventListener("playing", () => $("video").classList.add("playing"));
+
 function stopCamera() {
+  $("video").classList.remove("playing");
   stream?.getTracks().forEach((t) => t.stop());
   stream = null;
   $("video").srcObject = null;
