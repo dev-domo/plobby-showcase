@@ -35,7 +35,28 @@
 
   /* ---------- 화면 1: 대시보드 ---------- */
   #dash { grid-template-rows: auto 1fr auto; gap: 3vh; }
-  #dash header { display: flex; flex-direction: column; gap: 1.6vh; }
+  #dash header { display: flex; flex-direction: column; gap: 1.6vh; position: relative; }
+  .collection-btn {
+    position: absolute; top: 0; right: 0; width: 8vh; height: 8vh; border-radius: 50%;
+    display: grid; place-items: center; background: var(--card); color: var(--text);
+  }
+  .collection-btn svg { width: 4.6vh; height: 4.6vh; }
+  .collection-btn:active { transform: scale(.95); }
+
+  /* ---------- 컬렉션 ---------- */
+  #collection { grid-template-rows: auto 1fr; gap: 3vh; }
+  .collection-top { display: flex; align-items: center; gap: 1.6vw; }
+  .collection-top h2 { font-size: 4.4vh; font-weight: 800; }
+  .collection-top .total { font-size: 3vh; font-weight: 700; color: var(--green); }
+  .collection-top .home-btn { margin-left: auto; }
+  .collection-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(min(30vh, 40vw), 1fr)); gap: 1.6vh;
+    overflow-y: auto; align-content: start; min-height: 0; padding-bottom: 2vh;
+  }
+  .collection-grid img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 1.6vh; background: var(--track); cursor: pointer; }
+  .collection-grid .empty { grid-column: 1 / -1; height: 40vh; }
+  .viewer { position: fixed; inset: 0; background: rgba(0,0,0,.85); display: grid; place-items: center; z-index: 10; }
+  .viewer img { max-width: 90vw; max-height: 85vh; border-radius: 2vh; }
   .meta { display: flex; align-items: center; gap: 1vw; font-size: 2.2vh; color: var(--text-sub); }
   .chip { background: var(--card); padding: .5vh 1vw; border-radius: 1vh; font-weight: 600; }
   h1 { font-size: 5.5vh; font-weight: 700; }
@@ -128,6 +149,7 @@
     box-shadow: 0 0 0 .7vh #fff, 0 0 0 1.1vh var(--brand);
   }
   .shutter:disabled { opacity: .4; }
+  .save-note { font-size: 1.9vh; color: var(--text-sub); text-align: center; margin-top: -1vh; min-height: 2.4vh; }
   .pill { height: 7vh; padding: 0 3.4vh; border-radius: 999px; font-size: 2.6vh; font-weight: 700; }
   .pill.primary { background: var(--brand); color: #fff; }
   .pill.secondary { background: var(--card); color: var(--text); }
@@ -155,6 +177,15 @@
   <!-- 화면 1: 대시보드 -->
   <section class="screen active" id="dash">
     <header>
+      <button class="collection-btn" id="collectionBtn" aria-label="부스 컬렉션 보기">
+        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round">
+          <circle cx="24" cy="24" r="21"/>
+          <rect x="12" y="13" width="11" height="12" rx="3"/>
+          <rect x="26" y="12" width="10" height="10" rx="3"/>
+          <rect x="15" y="28" width="10" height="9" rx="3"/>
+          <rect x="28" y="26" width="8" height="8" rx="2.5"/>
+        </svg>
+      </button>
       <div class="meta"><span class="chip" id="dday">-</span><span id="period"></span></div>
       <h1 id="title">공통 목표를 불러오는 중이에요</h1>
       <div class="count-row">
@@ -182,6 +213,17 @@
     </footer>
   </section>
 
+  <!-- 컬렉션: 이 기기에서 찍은 모든 사진 -->
+  <section class="screen" id="collection">
+    <div class="collection-top">
+      <h2>부스 컬렉션</h2>
+      <span class="total" id="collectionTotal"></span>
+      <button class="home-btn" data-home>← 처음으로</button>
+    </div>
+    <div class="collection-grid" id="collectionGrid"></div>
+  </section>
+  <div class="viewer" id="viewer" hidden><img id="viewerImg" alt=""></div>
+
   <!-- 화면 2: 사진 촬영 -->
   <section class="screen booth" id="camera">
     <div class="booth-top" data-booth-top></div>
@@ -200,6 +242,7 @@
         <div class="center" id="cameraActions"></div>
         <span></span>
       </div>
+      <div class="save-note" id="saveNote"></div>
     </div>
     <div class="booth-bottom">
       <div>
@@ -272,6 +315,7 @@ let photoBlob = null;
 let photoURL = null;
 let isCounting = false;
 let shareFile = null;
+let framedBlob = null;
 
 const $ = (id) => document.getElementById(id);
 
@@ -527,10 +571,11 @@ function setCameraActions(mode) {
       <button class="pill secondary" id="retakeBtn">다시 찍기</button>
       <button class="pill primary" id="nextBtn">다음</button>`;
     $("retakeBtn").addEventListener("click", startPreview);
-    $("nextBtn").addEventListener("click", openResult);
+    $("nextBtn").addEventListener("click", openResult, { once: true });
   } else {
     box.innerHTML = "";
   }
+  $("saveNote").textContent = mode === "taken" ? "\"다음\"을 누르면 사진이 부스 컬렉션에 저장돼요" : "";
 }
 
 function wait(ms) {
@@ -603,12 +648,67 @@ async function openResult() {
   renderTrashLayer();
   renderBoothTop();
   show("result");
-  prepareShareFile();
 
+  // "다음"을 누르면 쓰레기가 깔린 사진을 이 기기의 컬렉션에 저장해요.
   const others = await loadGallery();
-  await savePhoto(photoBlob);
+  try {
+    framedBlob = await composeFramedPhoto();
+    await savePhoto(framedBlob);
+  } catch (error) {
+    framedBlob = null;
+  }
   renderGallery(others);
+  prepareShareFile();
 }
+
+function trashAnchorY(top, height, t) {
+  return top + height * (1 - t.bottom / 100);
+}
+
+/** 사진 하단에 쓰레기를 깐 4:3 사진을 만들어요. 컬렉션에 저장하고 공유 이미지에도 써요. */
+async function composeFramedPhoto() {
+  const [photo, ...trashImages] = await Promise.all([
+    loadImage(photoURL),
+    ...TRASH.map((t) => loadImage(`trash/${t.name}.svg`))
+  ]);
+  const canvas = document.createElement("canvas");
+  canvas.width = PHOTO_WIDTH;
+  canvas.height = PHOTO_HEIGHT;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(photo, 0, 0, PHOTO_WIDTH, PHOTO_HEIGHT);
+  TRASH.forEach((t, i) => {
+    const img = trashImages[i];
+    const h = PHOTO_HEIGHT * t.h / 100;
+    const w = h * (img.width / img.height);
+    ctx.save();
+    ctx.translate(PHOTO_WIDTH * t.x / 100, trashAnchorY(0, PHOTO_HEIGHT, t));
+    ctx.rotate(t.r * Math.PI / 180);
+    ctx.drawImage(img, -w / 2, -h, w, h);
+    ctx.restore();
+  });
+  return new Promise((resolve, reject) => canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("toBlob")), "image/jpeg", 0.9));
+}
+
+// ---------- 컬렉션 ----------
+
+async function openCollection() {
+  const grid = $("collectionGrid");
+  grid.querySelectorAll("img").forEach((img) => URL.revokeObjectURL(img.src));
+  show("collection");
+  const photos = await loadGallery(Infinity);
+  $("collectionTotal").textContent = `${photos.length.toLocaleString()}장`;
+  grid.innerHTML = photos.length
+    ? photos.map((p) => `<img src="${URL.createObjectURL(p.blob)}" alt="" loading="lazy" decoding="async">`).join("")
+    : `<div class="empty">아직 찍은 사진이 없어요</div>`;
+}
+
+$("collectionBtn").addEventListener("click", openCollection);
+$("collectionGrid").addEventListener("click", (event) => {
+  if (event.target.tagName !== "IMG") return;
+  $("viewerImg").src = event.target.src;
+  $("viewer").hidden = false;
+});
+$("viewer").addEventListener("click", () => { $("viewer").hidden = true; });
 
 function renderGallery(photos) {
   const thumbs = $("thumbs");
@@ -682,12 +782,11 @@ async function composeShareImage() {
   const photoX = P, photoY = 300;
   const H = Math.round(photoY + photoH + P);
 
+  if (!framedBlob) throw new Error("framed photo missing");
   await document.fonts.ready;
-  const [photo, logo, ...trashImages] = await Promise.all([
-    loadImage(photoURL),
-    loadImage("logo.svg"),
-    ...TRASH.map((t) => loadImage(`trash/${t.name}.svg`))
-  ]);
+  const framedURL = URL.createObjectURL(framedBlob);
+  const [photo, logo] = await Promise.all([loadImage(framedURL), loadImage("logo.svg")]);
+  URL.revokeObjectURL(framedURL);
 
   const canvas = document.createElement("canvas");
   canvas.width = W;
@@ -731,21 +830,11 @@ async function composeShareImage() {
   const logoH = 72, logoW = logoH * (73 / 23);
   ctx.drawImage(logo, W - P - logoW, P + 72, logoW, logoH);
 
-  // 사진과 사진 하단 쓰레기 (프레임 밖으로 나간 부분은 잘라요)
+  // 쓰레기가 깔린 사진
   ctx.save();
   roundRect(ctx, photoX, photoY, photoW, photoH, 48);
   ctx.clip();
   ctx.drawImage(photo, photoX, photoY, photoW, photoH);
-  TRASH.forEach((t, i) => {
-    const img = trashImages[i];
-    const h = photoH * t.h / 100;
-    const w = h * (img.width / img.height);
-    ctx.save();
-    ctx.translate(photoX + photoW * t.x / 100, photoY + photoH * (1 + Math.abs(Math.min(0, t.bottom)) / 100) - photoH * Math.max(0, t.bottom) / 100);
-    ctx.rotate(t.r * Math.PI / 180);
-    ctx.drawImage(img, -w / 2, -h, w, h);
-    ctx.restore();
-  });
   ctx.restore();
 
   return new Promise((resolve, reject) => canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("toBlob")), "image/jpeg", 0.92));
@@ -776,7 +865,7 @@ async function savePhoto(blob) {
   }
 }
 
-async function loadGallery() {
+async function loadGallery(limit = GALLERY_LIMIT) {
   try {
     const db = await openDB();
     const all = await new Promise((resolve, reject) => {
@@ -784,7 +873,7 @@ async function loadGallery() {
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
     });
-    return all.sort((a, b) => b.createdAt - a.createdAt).slice(0, GALLERY_LIMIT);
+    return all.sort((a, b) => b.createdAt - a.createdAt).slice(0, limit);
   } catch (error) {
     return [];
   }
