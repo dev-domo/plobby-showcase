@@ -76,11 +76,7 @@
     font-size: 2.4vh; font-weight: 700; box-shadow: 0 .6vh 2vh rgba(0,0,0,.2);
   }
   .shoot-pill svg { width: 2.8vh; height: 2.8vh; }
-  .shoot-icon {
-    width: 6vh; height: 6vh; border-radius: 50%; flex: none; display: grid; place-items: center;
-    background: var(--brand); color: #fff;
-  }
-  .shoot-icon svg { width: 3vh; height: 3vh; }
+
 
   .latest { display: flex; flex-direction: column; min-height: 0; }
   .latest-card { flex: 1; min-height: 0; position: relative; border-radius: 3vh; overflow: hidden; background: var(--card); }
@@ -151,14 +147,14 @@
     color: #fff; background: rgba(0,0,0,.35);
   }
   .camera-actions {
-    position: absolute; left: 50%; bottom: 20vh; transform: translateX(-50%);
+    position: absolute; left: 50%; bottom: 24vh; transform: translateX(-50%);
     display: flex; flex-direction: column; align-items: center; gap: 1.4vh;
   }
   .camera-actions .buttons { display: flex; gap: 1.6vh; }
   /* 세로 화면은 폭이 좁아서, 상단 문구·하단 문구와 겹치지 않게 버튼을 안쪽으로 옮겨요 */
   @media (orientation: portrait) {
     .camera-home { top: 22vh; }
-    .camera-actions { bottom: 33vh; }
+    .camera-actions { bottom: 36vh; }
   }
   .shutter {
     width: 11vh; height: 11vh; border-radius: 50%; background: var(--brand);
@@ -283,38 +279,85 @@ const RECENT_LIMIT = 6;
 const COUNTDOWN_SECONDS = 5;
 // 저장하는 사진의 긴 변 길이(px). 짧은 변은 화면 비율에 맞춰요.
 const PHOTO_LONG_EDGE = 1920;
-// 프레임 하단에 깔리는 쓰레기(앞에 적은 것부터 그려서, 뒤에 적은 앞줄이 위에 겹쳐요). x: 가운데 위치(프레임 너비 %), bottom: 아래 끝(프레임 높이 %, 음수면 프레임 밖으로 잠겨요),
+// 프레임 하단에 틈 없이 깔리는 쓰레기. 세 줄(뒷줄→가운데→앞줄) 순서로 그려서 앞줄이 위에 겹쳐요. x: 가운데 위치(프레임 너비 %), bottom: 아래 끝(프레임 높이 %, 음수면 프레임 밖으로 잠겨요),
 // h: 높이(프레임 높이 %), r: 기울기(도)
 const TRASH = [
-  { name: "soda_can_pink", x: 2, bottom: 4, h: 8.5, r: -12 },
-  { name: "bottle_white", x: 9, bottom: 3, h: 13, r: 16 },
-  { name: "crumpled_paper_white", x: 16, bottom: 5, h: 6, r: 0 },
-  { name: "cup_orange", x: 22, bottom: 4, h: 8, r: 10 },
-  { name: "tin_can_blue", x: 29, bottom: 4.5, h: 6.5, r: -8 },
-  { name: "straw_yellow", x: 36, bottom: 3, h: 10, r: 22 },
-  { name: "plastic_bag_pink", x: 43, bottom: 4, h: 9, r: -6 },
-  { name: "glass_bottle_brown", x: 50, bottom: 2, h: 13, r: -14 },
-  { name: "soda_can_mint", x: 57, bottom: 4, h: 8.5, r: 12 },
-  { name: "cup_red", x: 64, bottom: 4.5, h: 8, r: -10 },
-  { name: "bottle_crumpled_yellow", x: 71, bottom: 3.5, h: 9, r: 8 },
-  { name: "plastic_bag_sky_blue", x: 78, bottom: 4, h: 9, r: -4 },
-  { name: "tin_can_red", x: 85, bottom: 4.5, h: 6.5, r: 10 },
-  { name: "bottle_blue", x: 92, bottom: 2.5, h: 13, r: -18 },
-  { name: "paper_cup_white", x: 98, bottom: 4, h: 8, r: 6 },
-  { name: "buoy_horizontal_orange", x: 5, bottom: -2, h: 9, r: -8 },
-  { name: "bottle_blue", x: 13, bottom: -5, h: 17, r: 22 },
-  { name: "cup_red", x: 20, bottom: -1.5, h: 10, r: -12 },
-  { name: "plastic_bag_sky_blue", x: 27, bottom: -3, h: 11, r: 6 },
-  { name: "glass_bottle_green", x: 34, bottom: -6, h: 18, r: -20 },
-  { name: "soda_can_mint", x: 41, bottom: -2, h: 10.5, r: 14 },
-  { name: "straw_striped", x: 47, bottom: -3, h: 11.5, r: -18 },
-  { name: "tin_can_red", x: 53, bottom: -1.5, h: 8, r: -6 },
-  { name: "bottle_white", x: 60, bottom: -5, h: 16, r: 18 },
-  { name: "cup_orange", x: 67, bottom: -1.5, h: 10, r: -10 },
-  { name: "plastic_bag_pink", x: 74, bottom: -3, h: 11, r: 8 },
-  { name: "glass_bottle_green", x: 81, bottom: -6, h: 17, r: -22 },
-  { name: "bottle_crumpled_yellow", x: 88, bottom: -2, h: 11, r: 10 },
-  { name: "soda_can_pink", x: 95, bottom: -2, h: 10, r: -14 }
+  { name: "plastic_bag_sky_blue", x: 0.9, bottom: 8.7, h: 7.8, r: -15 },
+  { name: "bottle_white", x: 4.8, bottom: 8.1, h: 11.2, r: 6 },
+  { name: "soda_can_mint", x: 7.2, bottom: 8.8, h: 8.0, r: -11 },
+  { name: "bottle_white", x: 12.2, bottom: 8.7, h: 12.9, r: -21 },
+  { name: "cup_red", x: 15.6, bottom: 7.9, h: 7.1, r: 21 },
+  { name: "cup_orange", x: 19.2, bottom: 9.2, h: 7.2, r: -21 },
+  { name: "glass_bottle_green", x: 24.1, bottom: 9.4, h: 12.8, r: 14 },
+  { name: "tin_can_blue", x: 28.2, bottom: 8.9, h: 5.8, r: -11 },
+  { name: "glass_bottle_green", x: 32.1, bottom: 9.1, h: 13.6, r: 13 },
+  { name: "glass_bottle_brown", x: 35.2, bottom: 8.8, h: 12.5, r: -19 },
+  { name: "tin_can_red", x: 39.1, bottom: 9.5, h: 6.3, r: 14 },
+  { name: "plastic_bag_pink", x: 44.2, bottom: 9.2, h: 8.3, r: -12 },
+  { name: "buoy_horizontal_orange", x: 48.4, bottom: 7.7, h: 6.6, r: 24 },
+  { name: "tin_can_red", x: 51.6, bottom: 8.7, h: 6.2, r: -18 },
+  { name: "plastic_bag_pink", x: 55.3, bottom: 7.9, h: 7.8, r: 8 },
+  { name: "paper_cup_white", x: 59.8, bottom: 10.3, h: 7.6, r: -18 },
+  { name: "straw_yellow", x: 64.1, bottom: 10.2, h: 8.4, r: 17 },
+  { name: "plastic_bag_pink", x: 68.4, bottom: 8.6, h: 8.0, r: -9 },
+  { name: "bottle_crumpled_yellow", x: 71.5, bottom: 8.2, h: 8.0, r: -12 },
+  { name: "plastic_bag_sky_blue", x: 75.0, bottom: 8.8, h: 8.2, r: 8 },
+  { name: "crumpled_paper_white", x: 80.9, bottom: 9.5, h: 5.8, r: 21 },
+  { name: "straw_striped", x: 83.8, bottom: 8.7, h: 8.0, r: 5 },
+  { name: "cup_orange", x: 87.1, bottom: 8.1, h: 7.2, r: 23 },
+  { name: "bottle_white", x: 91.2, bottom: 9.2, h: 12.1, r: 23 },
+  { name: "bottle_blue", x: 95.1, bottom: 8.1, h: 11.8, r: 15 },
+  { name: "straw_striped", x: 99.9, bottom: 7.8, h: 8.0, r: 19 },
+  { name: "tin_can_blue", x: 1.6, bottom: 2.9, h: 7.0, r: 19 },
+  { name: "cup_red", x: 6.0, bottom: 3.1, h: 9.2, r: 8 },
+  { name: "bottle_blue", x: 10.5, bottom: 3.4, h: 13.8, r: -12 },
+  { name: "crumpled_paper_white", x: 13.7, bottom: 3.0, h: 6.6, r: 24 },
+  { name: "paper_cup_white", x: 18.2, bottom: 4.9, h: 8.9, r: -11 },
+  { name: "straw_yellow", x: 22.5, bottom: 3.2, h: 9.0, r: 4 },
+  { name: "bottle_blue", x: 26.6, bottom: 3.9, h: 12.8, r: 18 },
+  { name: "straw_striped", x: 30.9, bottom: 3.6, h: 8.6, r: -19 },
+  { name: "cup_orange", x: 33.7, bottom: 3.9, h: 9.2, r: -19 },
+  { name: "straw_striped", x: 38.6, bottom: 2.8, h: 9.2, r: 10 },
+  { name: "buoy_horizontal_orange", x: 42.8, bottom: 3.8, h: 7.4, r: -16 },
+  { name: "tin_can_red", x: 45.8, bottom: 5.3, h: 7.0, r: -8 },
+  { name: "bottle_blue", x: 49.3, bottom: 5.2, h: 14.2, r: -23 },
+  { name: "buoy_horizontal_orange", x: 54.3, bottom: 3.6, h: 7.3, r: -4 },
+  { name: "bottle_blue", x: 58.6, bottom: 4.7, h: 12.6, r: -17 },
+  { name: "paper_cup_white", x: 62.7, bottom: 3.1, h: 8.2, r: 20 },
+  { name: "soda_can_mint", x: 66.5, bottom: 3.5, h: 8.6, r: -5 },
+  { name: "straw_striped", x: 70.8, bottom: 4.5, h: 9.5, r: 20 },
+  { name: "bottle_crumpled_yellow", x: 74.1, bottom: 4.1, h: 8.3, r: 9 },
+  { name: "bottle_blue", x: 78.6, bottom: 2.9, h: 12.7, r: -21 },
+  { name: "glass_bottle_green", x: 81.7, bottom: 4.1, h: 14.5, r: -21 },
+  { name: "bottle_white", x: 85.5, bottom: 3.3, h: 14.1, r: 21 },
+  { name: "bottle_blue", x: 90.5, bottom: 5.2, h: 13.4, r: -12 },
+  { name: "tin_can_blue", x: 94.0, bottom: 4.9, h: 6.8, r: -20 },
+  { name: "soda_can_mint", x: 98.8, bottom: 5.2, h: 8.1, r: 8 },
+  { name: "tin_can_red", x: 101.2, bottom: 3.8, h: 6.3, r: -17 },
+  { name: "glass_bottle_green", x: 0.4, bottom: -2.6, h: 15.0, r: -24 },
+  { name: "straw_striped", x: 4.6, bottom: -0.9, h: 10.7, r: -7 },
+  { name: "straw_yellow", x: 10.4, bottom: -3.0, h: 10.3, r: -9 },
+  { name: "tin_can_red", x: 14.9, bottom: -2.3, h: 7.4, r: 14 },
+  { name: "glass_bottle_green", x: 18.6, bottom: -3.4, h: 16.1, r: 4 },
+  { name: "straw_yellow", x: 22.2, bottom: -1.6, h: 10.0, r: -7 },
+  { name: "paper_cup_white", x: 27.7, bottom: -3.2, h: 9.1, r: -9 },
+  { name: "soda_can_pink", x: 31.6, bottom: -1.0, h: 10.0, r: 16 },
+  { name: "bottle_crumpled_yellow", x: 35.5, bottom: -2.0, h: 10.0, r: 6 },
+  { name: "soda_can_pink", x: 38.8, bottom: -1.4, h: 9.4, r: -12 },
+  { name: "bottle_blue", x: 44.3, bottom: -1.1, h: 14.0, r: -6 },
+  { name: "soda_can_pink", x: 49.0, bottom: -2.1, h: 9.3, r: 12 },
+  { name: "bottle_crumpled_yellow", x: 51.7, bottom: -1.4, h: 10.7, r: -12 },
+  { name: "bottle_white", x: 56.3, bottom: -0.7, h: 15.3, r: -13 },
+  { name: "tin_can_blue", x: 61.2, bottom: -3.0, h: 7.3, r: -12 },
+  { name: "bottle_white", x: 64.5, bottom: -1.3, h: 15.1, r: -20 },
+  { name: "buoy_horizontal_orange", x: 69.3, bottom: -2.2, h: 8.2, r: 19 },
+  { name: "straw_striped", x: 75.0, bottom: -2.6, h: 9.5, r: -14 },
+  { name: "cup_orange", x: 79.1, bottom: -1.4, h: 9.7, r: 15 },
+  { name: "bottle_white", x: 83.4, bottom: -3.5, h: 15.3, r: 17 },
+  { name: "cup_orange", x: 86.1, bottom: -1.5, h: 9.3, r: 23 },
+  { name: "soda_can_mint", x: 91.7, bottom: -3.4, h: 9.0, r: 18 },
+  { name: "bottle_blue", x: 95.1, bottom: -0.6, h: 16.1, r: 11 },
+  { name: "glass_bottle_green", x: 100.8, bottom: -2.6, h: 15.6, r: -14 }
 ];
 // 로고·쓰레기 그림을 페이지 안에 넣어 둬요. 파일로 열어도 사진에 그릴 수 있어요(원본: logo.svg, trash/*.svg).
 const ASSET_URLS = {
@@ -489,7 +532,6 @@ function renderRecords() {
       ${r.photo ? `<img src="${r.photo}" alt="">` : `<div class="ph"></div>`}
       <div class="t"><b>${tagHTML(r.type)}${escapeHTML(r.nickname)}</b><span>${escapeHTML(r.title)} · ${timeAgo(r.createdAt)}</span></div>
       <div class="n">+${r.count}</div>
-      <div class="shoot-icon" aria-label="이 기록으로 사진 찍기">${CAMERA_ICON}</div>
     </div>`).join("");
 }
 
@@ -587,11 +629,11 @@ function drawOverlay(ctx, W, H, info, assets) {
   g.addColorStop(1, "rgba(0,0,0,0)");
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, W, 30 * U);
-  g = ctx.createLinearGradient(0, H - 38 * U, 0, H);
+  g = ctx.createLinearGradient(0, H - 42 * U, 0, H);
   g.addColorStop(0, "rgba(0,0,0,0)");
   g.addColorStop(1, "rgba(0,0,0,.45)");
   ctx.fillStyle = g;
-  ctx.fillRect(0, H - 38 * U, W, 38 * U);
+  ctx.fillRect(0, H - 42 * U, W, 42 * U);
 
   // 하단에 깔린 쓰레기
   TRASH.forEach((t, i) => {
@@ -644,7 +686,7 @@ function drawOverlay(ctx, W, H, info, assets) {
   // 좌측 하단: 태그, 기록 문구 / 우측 하단: +n개 (같은 줄)
   if (info.label) {
     const colors = TAG_COLORS[info.type] ?? TAG_COLORS.plogging;
-    const lineBottom = H - 22 * U;
+    const lineBottom = H - 25 * U;
     ctx.textBaseline = "bottom";
     ctx.textAlign = "left";
     ctx.font = font(700, 4.6 * U);
