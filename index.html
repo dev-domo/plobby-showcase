@@ -109,35 +109,22 @@
   .status::before { content: "●"; margin-right: .5vw; color: var(--green); }
   .status.off::before { color: #D14343; }
 
-  /* ---------- 화면 2·3: 포토부스 공통 ---------- */
-  .booth { grid-template-rows: auto 1fr auto; gap: 2.5vh; }
-  .booth-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 4vw; }
-  .booth-goal { flex: 1; max-width: 46vh; display: flex; flex-direction: column; gap: 1vh; }
-  .booth-goal .slogan { font-size: 3.4vh; font-weight: 800; }
-  .booth-goal .ratio { font-size: 2.6vh; font-weight: 700; color: var(--green); font-variant-numeric: tabular-nums; }
-  .booth-goal .ratio span { color: var(--text-sub); font-weight: 500; }
-  .booth-goal .track { height: 1.4vh; }
-  .booth-brand { display: flex; flex-direction: column; align-items: flex-end; gap: 1.2vh; }
-  .booth-brand .date { font-size: 2.4vh; font-weight: 600; color: var(--text-sub); font-variant-numeric: tabular-nums; }
-  .booth-brand img { height: 4vh; }
-
-  .booth-middle { display: flex; flex-direction: column; align-items: center; min-height: 0; gap: 2.5vh; }
-  .stage { flex: 1; min-height: 0; width: 100%; display: flex; justify-content: center; align-items: center; container-type: size; }
-  .frame {
-    position: relative; width: min(100cqw, 100cqh * 4 / 3); aspect-ratio: 4 / 3;
-    border-radius: 3vh; overflow: hidden; background: #111;
-  }
-  .frame video, .frame img.shot { width: 100%; height: 100%; object-fit: cover; display: block; }
+  /* ---------- 화면 2: 전체 화면 촬영 ---------- */
+  #camera { padding: 0; background: #111; }
+  .frame { position: relative; width: 100%; height: 100%; overflow: hidden; background: #111; }
+  .frame video, .frame img.shot { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
   /* iPad Safari는 영상이 재생되기 전 재생 버튼을 잠깐 보여줘요. 재생이 시작될 때까지 영상을 숨기고 버튼도 감춰요. */
   .frame video { transform: scaleX(-1); opacity: 0; transition: opacity .2s; }
   .frame video.playing { opacity: 1; }
   .frame video::-webkit-media-controls,
   .frame video::-webkit-media-controls-start-playback-button,
   .frame video::-webkit-media-controls-overlay-play-button { display: none !important; -webkit-appearance: none; }
-  .frame .msg { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; color: #fff; font-size: 2.4vh; padding: 3vh; line-height: 1.5; white-space: pre-line; }
+  /* 프레임 안 정보와 쓰레기. 저장할 때와 같은 그리기 코드로 그려요. */
+  .overlay { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .frame .msg { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; color: #fff; font-size: 2.6vh; padding: 3vh; line-height: 1.5; white-space: pre-line; }
   .countdown {
     position: absolute; inset: 0; display: grid; place-items: center;
-    font-size: 22vh; font-weight: 800; color: #fff; text-shadow: 0 .6vh 3vh rgba(0,0,0,.4);
+    font-size: 24vh; font-weight: 800; color: #fff; text-shadow: 0 .6vh 3vh rgba(0,0,0,.4);
     pointer-events: none;
   }
   .countdown.tick { animation: tick 1s ease-out; }
@@ -146,34 +133,47 @@
   .flash.on { animation: flash .5s ease-out; }
   @keyframes flash { 0% { opacity: 1; } 100% { opacity: 0; } }
 
-  .controls { width: 100%; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; min-height: 11vh; }
-  .controls .center { display: flex; gap: 1.6vw; justify-content: center; }
-  .home-btn { justify-self: start; font-size: 2.2vh; color: var(--text-sub); padding: 1.4vh 1vw; }
+  /* 촬영 조작 버튼은 프레임 위에 떠 있고, 저장되는 사진에는 들어가지 않아요 */
+  .camera-home {
+    position: absolute; top: 4vh; left: 50%; transform: translateX(-50%);
+    padding: 1.2vh 2.4vh; border-radius: 999px; font-size: 2.2vh; font-weight: 600;
+    color: #fff; background: rgba(0,0,0,.35);
+  }
+  .camera-actions {
+    position: absolute; left: 50%; bottom: 20vh; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 1.4vh;
+  }
+  .camera-actions .buttons { display: flex; gap: 1.6vh; }
+  /* 세로 화면은 폭이 좁아서, 상단 문구·하단 문구와 겹치지 않게 버튼을 안쪽으로 옮겨요 */
+  @media (orientation: portrait) {
+    .camera-home { top: 22vh; }
+    .camera-actions { bottom: 33vh; }
+  }
   .shutter {
     width: 11vh; height: 11vh; border-radius: 50%; background: var(--brand);
-    box-shadow: 0 0 0 .7vh #fff, 0 0 0 1.1vh var(--brand);
+    box-shadow: 0 0 0 .7vh #fff, 0 0 0 1.1vh rgba(19,189,126,.6);
   }
   .shutter:disabled { opacity: .4; }
-  .save-note { font-size: 1.9vh; color: var(--text-sub); text-align: center; margin-top: -1vh; min-height: 2.4vh; }
+  .save-note { font-size: 1.9vh; color: #fff; text-shadow: 0 .2vh 1vh rgba(0,0,0,.5); }
   .pill { height: 7vh; padding: 0 3.4vh; border-radius: 999px; font-size: 2.6vh; font-weight: 700; }
   .pill.primary { background: var(--brand); color: #fff; }
   .pill.secondary { background: var(--card); color: var(--text); }
+  .home-btn { font-size: 2.2vh; color: var(--text-sub); padding: 1.4vh 1vw; }
 
-  .booth-bottom { display: flex; justify-content: space-between; align-items: flex-end; gap: 3vw; }
-  .booth-bottom .tag { font-size: 2.2vh; padding: .6vh 1.2vh; margin: 0 0 1vh; }
-  .booth-bottom .record { font-size: 3vh; font-weight: 700; }
-  .booth-bottom .plus { font-size: 3vh; font-weight: 800; color: var(--green); }
-  .booth-bottom .plus.plobbing { color: var(--blue); }
-
-  /* 화면 3 */
-  .trash-layer { position: absolute; inset: 0; pointer-events: none; }
-  .trash-layer img { position: absolute; transform-origin: center bottom; }
+  /* ---------- 화면 3: 결과·공유 ---------- */
+  #result { grid-template-rows: 1fr auto; gap: 3vh; }
+  .result-photo { position: relative; min-height: 0; }
+  .result-photo img {
+    position: absolute; inset: 0; margin: auto; max-width: 100%; max-height: 100%;
+    border-radius: 2.4vh; box-shadow: 0 1vh 4vh rgba(0,0,0,.15);
+  }
+  .result-bottom { display: flex; justify-content: space-between; align-items: flex-end; gap: 3vw; }
   .share-error { font-size: 2vh; color: #D14343; text-align: right; margin-top: 1vh; min-height: 2.4vh; }
   .gallery { min-width: 0; flex: 1; }
   .gallery .label { margin-bottom: 1vh; }
   .thumbs { display: flex; gap: 1vh; overflow-x: auto; scrollbar-width: none; }
   .thumbs::-webkit-scrollbar { display: none; }
-  .thumbs img { width: 12vh; height: 9vh; object-fit: cover; border-radius: 1.4vh; flex: none; background: var(--track); }
+  .thumbs img { height: 9vh; width: auto; border-radius: 1.4vh; flex: none; background: var(--track); }
   .thumbs .none { font-size: 2vh; color: var(--text-sub); padding: 1vh 0; }
   .result-actions { display: flex; gap: 1.4vw; align-items: center; }
 </style>
@@ -228,47 +228,27 @@
   </section>
   <div class="viewer" id="viewer" hidden><img id="viewerImg" alt=""></div>
 
-  <!-- 화면 2: 사진 촬영 -->
-  <section class="screen booth" id="camera">
-    <div class="booth-top" data-booth-top></div>
-    <div class="booth-middle">
-      <div class="stage">
-        <div class="frame">
-          <video id="video" autoplay playsinline muted></video>
-          <img class="shot" id="shot" alt="" hidden>
-          <div class="msg" id="cameraMsg" hidden></div>
-          <div class="countdown" id="countdown" hidden></div>
-          <div class="flash" id="flash"></div>
-        </div>
+  <!-- 화면 2: 전체 화면 촬영 -->
+  <section class="screen" id="camera">
+    <div class="frame" id="frame">
+      <video id="video" autoplay playsinline muted></video>
+      <img class="shot" id="shot" alt="" hidden>
+      <canvas class="overlay" id="overlay"></canvas>
+      <div class="msg" id="cameraMsg" hidden></div>
+      <div class="countdown" id="countdown" hidden></div>
+      <div class="flash" id="flash"></div>
+      <button class="camera-home" data-home>← 처음으로</button>
+      <div class="camera-actions">
+        <div class="save-note" id="saveNote"></div>
+        <div class="buttons" id="cameraActions"></div>
       </div>
-      <div class="controls">
-        <button class="home-btn" data-home>← 처음으로</button>
-        <div class="center" id="cameraActions"></div>
-        <span></span>
-      </div>
-      <div class="save-note" id="saveNote"></div>
-    </div>
-    <div class="booth-bottom">
-      <div>
-        <div><span class="tag" id="cameraTag"></span></div>
-        <div class="record" id="cameraRecord"></div>
-      </div>
-      <div class="plus" id="cameraPlus"></div>
     </div>
   </section>
 
   <!-- 화면 3: 결과·공유 -->
-  <section class="screen booth" id="result">
-    <div class="booth-top" data-booth-top></div>
-    <div class="booth-middle">
-      <div class="stage">
-        <div class="frame">
-          <img class="shot" id="resultShot" alt="">
-          <div class="trash-layer" id="trashLayer"></div>
-        </div>
-      </div>
-    </div>
-    <div class="booth-bottom">
+  <section class="screen" id="result">
+    <div class="result-photo"><img id="resultShot" alt=""></div>
+    <div class="result-bottom">
       <div class="gallery">
         <div class="label">함께한 사람들</div>
         <div class="thumbs" id="thumbs"></div>
@@ -290,22 +270,36 @@ const IMAGE_BUCKET = "Plobby Image Bucket";
 const POLL_MS = 5000;
 const RECENT_LIMIT = 6;
 const COUNTDOWN_SECONDS = 5;
-const PHOTO_WIDTH = 1440;
-const PHOTO_HEIGHT = 1080;
-// 사진 프레임 안 하단에 깔리는 쓰레기. x: 가운데 위치(프레임 너비 %), bottom: 아래 끝(프레임 높이 %, 음수면 프레임 밖으로 잠겨요),
+// 저장하는 사진의 긴 변 길이(px). 짧은 변은 화면 비율에 맞춰요.
+const PHOTO_LONG_EDGE = 1920;
+// 프레임 하단에 깔리는 쓰레기. x: 가운데 위치(프레임 너비 %), bottom: 아래 끝(프레임 높이 %, 음수면 프레임 밖으로 잠겨요),
 // h: 높이(프레임 높이 %), r: 기울기(도)
 const TRASH = [
-  { name: "buoy_horizontal_orange", x: 7, bottom: -3, h: 14, r: -8 },
-  { name: "bottle_blue", x: 17, bottom: -7, h: 28, r: 20 },
-  { name: "cup_red", x: 27, bottom: -2, h: 15, r: -12 },
-  { name: "plastic_bag_sky_blue", x: 37, bottom: -4, h: 17, r: 6 },
-  { name: "straw_striped", x: 47, bottom: -4, h: 18, r: -18 },
-  { name: "soda_can_mint", x: 57, bottom: -3, h: 16, r: 14 },
-  { name: "tin_can_red", x: 67, bottom: -2, h: 12, r: -6 },
-  { name: "glass_bottle_green", x: 78, bottom: -9, h: 30, r: -22 },
-  { name: "bottle_crumpled_yellow", x: 88, bottom: -3, h: 16, r: 10 },
-  { name: "paper_cup_white", x: 96, bottom: -2, h: 14, r: -10 }
+  { name: "buoy_horizontal_orange", x: 6, bottom: -2, h: 9, r: -8 },
+  { name: "bottle_blue", x: 15, bottom: -5, h: 17, r: 20 },
+  { name: "cup_red", x: 24, bottom: -1.5, h: 9.5, r: -12 },
+  { name: "plastic_bag_sky_blue", x: 34, bottom: -3, h: 11, r: 6 },
+  { name: "straw_striped", x: 44, bottom: -3, h: 11, r: -18 },
+  { name: "soda_can_mint", x: 56, bottom: -2, h: 10, r: 14 },
+  { name: "tin_can_red", x: 66, bottom: -1.5, h: 7.5, r: -6 },
+  { name: "glass_bottle_green", x: 76, bottom: -6, h: 18, r: -22 },
+  { name: "bottle_crumpled_yellow", x: 87, bottom: -2, h: 10, r: 10 },
+  { name: "paper_cup_white", x: 95, bottom: -1.5, h: 9, r: -10 }
 ];
+// 로고·쓰레기 그림을 페이지 안에 넣어 둬요. 파일로 열어도 사진에 그릴 수 있어요(원본: logo.svg, trash/*.svg).
+const ASSET_URLS = {
+  "logo": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNzMiIGhlaWdodD0iMjMiIHZpZXdCb3g9IjAgMCA3MyAyMyIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KCjxnIGlkPSJUb3BCYXIiPgoKCjxnIGlkPSJGcmFtZSI+CjxwYXRoIGlkPSJwbG9iYnkiIGQ9Ik02LjQzMTkxIDE3LjU5MTZDNS41OTk5MSAxNy41OTE2IDQuODQ3OTEgMTcuNDIzNiA0LjE3NTkxIDE3LjA4NzZDMy41MDM5MSAxNi43MzU2IDIuOTY3OTEgMTYuMjYzNiAyLjU2NzkxIDE1LjY3MTZDMi4xNjc5MSAxNS4wNzk2IDEuOTUxOTEgMTQuMzk5NiAxLjkxOTkxIDEzLjYzMTZWOS41Mjc1NkMxLjk1MTkxIDguNzU5NTYgMi4xNjc5MSA4LjA3OTU2IDIuNTY3OTEgNy40ODc1NkMyLjk4MzkxIDYuODc5NTYgMy41MTk5MSA2LjM5OTU2IDQuMTc1OTEgNi4wNDc1NkM0Ljg0NzkxIDUuNjk1NTYgNS41OTk5MSA1LjUxOTU2IDYuNDMxOTEgNS41MTk1NkM3LjUwMzkxIDUuNTE5NTYgOC40NjM5MSA1Ljc4MzU2IDkuMzExOTEgNi4zMTE1NkMxMC4xNTk5IDYuODM5NTYgMTAuODIzOSA3LjU1OTU2IDExLjMwMzkgOC40NzE1NkMxMS43OTk5IDkuMzgzNTYgMTIuMDQ3OSAxMC40MTU2IDEyLjA0NzkgMTEuNTY3NkMxMi4wNDc5IDEyLjcwMzYgMTEuNzk5OSAxMy43Mjc2IDExLjMwMzkgMTQuNjM5NkMxMC44MjM5IDE1LjU1MTYgMTAuMTU5OSAxNi4yNzE2IDkuMzExOTEgMTYuNzk5NkM4LjQ2MzkxIDE3LjMyNzYgNy41MDM5MSAxNy41OTE2IDYuNDMxOTEgMTcuNTkxNlpNLTguOTc5NDRlLTA1IDIyLjE5OTZWNS43NTk1NkgzLjE0MzkxVjguODA3NTZMMi42MTU5MSAxMS42MTU2TDMuMTE5OTEgMTQuNDIzNlYyMi4xOTk2SC04Ljk3OTQ0ZS0wNVpNNS44Nzk5MSAxNC42ODc2QzYuNDU1OTEgMTQuNjg3NiA2Ljk2NzkxIDE0LjU1OTYgNy40MTU5MSAxNC4zMDM2QzcuODYzOTEgMTQuMDMxNiA4LjIwNzkxIDEzLjY2MzYgOC40NDc5MSAxMy4xOTk2QzguNzAzOTEgMTIuNzE5NiA4LjgzMTkxIDEyLjE2NzYgOC44MzE5MSAxMS41NDM2QzguODMxOTEgMTAuOTM1NiA4LjcwMzkxIDEwLjM5OTYgOC40NDc5MSA5LjkzNTU2QzguMjA3OTEgOS40NTU1NiA3Ljg2MzkxIDkuMDg3NTYgNy40MTU5MSA4LjgzMTU2QzYuOTY3OTEgOC41NTk1NiA2LjQ1NTkxIDguNDIzNTYgNS44Nzk5MSA4LjQyMzU2QzUuMzE5OTEgOC40MjM1NiA0LjgxNTkxIDguNTU5NTYgNC4zNjc5MSA4LjgzMTU2QzMuOTE5OTEgOS4wODc1NiAzLjU2NzkxIDkuNDU1NTYgMy4zMTE5MSA5LjkzNTU2QzMuMDcxOTEgMTAuMzk5NiAyLjk1MTkxIDEwLjkzNTYgMi45NTE5MSAxMS41NDM2QzIuOTUxOTEgMTIuMTY3NiAzLjA3MTkxIDEyLjcxOTYgMy4zMTE5MSAxMy4xOTk2QzMuNTY3OTEgMTMuNjYzNiAzLjkxMTkxIDE0LjAzMTYgNC4zNDM5MSAxNC4zMDM2QzQuNzkxOTEgMTQuNTU5NiA1LjMwMzkxIDE0LjY4NzYgNS44Nzk5MSAxNC42ODc2Wk0xNC4xMDkzIDE3LjM1MTZWLTAuMDAwNDM4NjlIMTcuMjUzM1YxNy4zNTE2SDE0LjEwOTNaTTI1LjQ4NyAxNy41OTE2QzI0LjMxOSAxNy41OTE2IDIzLjI2MyAxNy4zMjc2IDIyLjMxOSAxNi43OTk2QzIxLjM5MSAxNi4yNTU2IDIwLjY0NyAxNS41Mjc2IDIwLjA4NyAxNC42MTU2QzE5LjU0MyAxMy42ODc2IDE5LjI3MSAxMi42NTU2IDE5LjI3MSAxMS41MTk2QzE5LjI3MSAxMC4zODM2IDE5LjU0MyA5LjM2NzU2IDIwLjA4NyA4LjQ3MTU2QzIwLjYzMSA3LjU1OTU2IDIxLjM3NSA2LjgzOTU2IDIyLjMxOSA2LjMxMTU2QzIzLjI2MyA1Ljc2NzU2IDI0LjMxMSA1LjQ5NTU2IDI1LjQ2MyA1LjQ5NTU2QzI2LjY0NyA1LjQ5NTU2IDI3LjcwMyA1Ljc2NzU2IDI4LjYzMSA2LjMxMTU2QzI5LjU3NSA2LjgzOTU2IDMwLjMxOSA3LjU1OTU2IDMwLjg2MyA4LjQ3MTU2QzMxLjQwNyA5LjM2NzU2IDMxLjY3OSAxMC4zODM2IDMxLjY3OSAxMS41MTk2QzMxLjY3OSAxMi42NTU2IDMxLjQwNyAxMy42ODc2IDMwLjg2MyAxNC42MTU2QzMwLjMxOSAxNS41Mjc2IDI5LjU3NSAxNi4yNTU2IDI4LjYzMSAxNi43OTk2QzI3LjcwMyAxNy4zMjc2IDI2LjY1NSAxNy41OTE2IDI1LjQ4NyAxNy41OTE2Wk0yNS40NjMgMTQuNjYzNkMyNi4wNTUgMTQuNjYzNiAyNi41NzUgMTQuNTM1NiAyNy4wMjMgMTQuMjc5NkMyNy40ODcgMTQuMDA3NiAyNy44MzkgMTMuNjM5NiAyOC4wNzkgMTMuMTc1NkMyOC4zMzUgMTIuNjk1NiAyOC40NjMgMTIuMTUxNiAyOC40NjMgMTEuNTQzNkMyOC40NjMgMTAuOTM1NiAyOC4zMzUgMTAuMzk5NiAyOC4wNzkgOS45MzU1NkMyNy44MjMgOS40NzE1NiAyNy40NzEgOS4xMTE1NiAyNy4wMjMgOC44NTU1NkMyNi41NzUgOC41ODM1NiAyNi4wNTUgOC40NDc1NiAyNS40NjMgOC40NDc1NkMyNC44ODcgOC40NDc1NiAyNC4zNzUgOC41ODM1NiAyMy45MjcgOC44NTU1NkMyMy40NzkgOS4xMTE1NiAyMy4xMjcgOS40NzE1NiAyMi44NzEgOS45MzU1NkMyMi42MTUgMTAuMzk5NiAyMi40ODcgMTAuOTM1NiAyMi40ODcgMTEuNTQzNkMyMi40ODcgMTIuMTUxNiAyMi42MTUgMTIuNjk1NiAyMi44NzEgMTMuMTc1NkMyMy4xMjcgMTMuNjM5NiAyMy40NzkgMTQuMDA3NiAyMy45MjcgMTQuMjc5NkMyNC4zNzUgMTQuNTM1NiAyNC44ODcgMTQuNjYzNiAyNS40NjMgMTQuNjYzNlpNNDAuMTM1IDE3LjU5MTZDMzkuMzAzIDE3LjU5MTYgMzguNTUxIDE3LjQxNTYgMzcuODc5IDE3LjA2MzZDMzcuMjA3IDE2LjcxMTYgMzYuNjcxIDE2LjIzMTYgMzYuMjcxIDE1LjYyMzZDMzUuODcxIDE1LjAxNTYgMzUuNjU1IDE0LjMzNTYgMzUuNjIzIDEzLjU4MzZWOS40NTU1NkMzNS42NTUgOC43MDM1NiAzNS44NzEgOC4wMzE1NiAzNi4yNzEgNy40Mzk1NkMzNi42ODcgNi44MzE1NiAzNy4yMzEgNi4zNTk1NiAzNy45MDMgNi4wMjM1NkMzOC41NzUgNS42ODc1NiAzOS4zMTkgNS41MTk1NiA0MC4xMzUgNS41MTk1NkM0MS4yMDcgNS41MTk1NiA0Mi4xNjcgNS43ODM1NiA0My4wMTUgNi4zMTE1NkM0My44NjMgNi44Mzk1NiA0NC41MjcgNy41NTk1NiA0NS4wMDcgOC40NzE1NkM0NS41MDMgOS4zODM1NiA0NS43NTEgMTAuNDE1NiA0NS43NTEgMTEuNTY3NkM0NS43NTEgMTIuNzAzNiA0NS41MDMgMTMuNzI3NiA0NS4wMDcgMTQuNjM5NkM0NC41MjcgMTUuNTUxNiA0My44NjMgMTYuMjcxNiA0My4wMTUgMTYuNzk5NkM0Mi4xNjcgMTcuMzI3NiA0MS4yMDcgMTcuNTkxNiA0MC4xMzUgMTcuNTkxNlpNMzMuNzAzIDE3LjM1MTZWLTAuMDAwNDM4NjlIMzYuODQ3VjguNjE1NTZMMzYuMzE5IDExLjM5OTZMMzYuODIzIDE0LjIzMTZWMTcuMzUxNkgzMy43MDNaTTM5LjYwNyAxNC42ODc2QzQwLjE4MyAxNC42ODc2IDQwLjY4NyAxNC41NTk2IDQxLjExOSAxNC4zMDM2QzQxLjU2NyAxNC4wMzE2IDQxLjkxMSAxMy42NjM2IDQyLjE1MSAxMy4xOTk2QzQyLjQwNyAxMi43MTk2IDQyLjUzNSAxMi4xNjc2IDQyLjUzNSAxMS41NDM2QzQyLjUzNSAxMC45MzU2IDQyLjQwNyAxMC4zOTk2IDQyLjE1MSA5LjkzNTU2QzQxLjkxMSA5LjQ1NTU2IDQxLjU2NyA5LjA4NzU2IDQxLjExOSA4LjgzMTU2QzQwLjY3MSA4LjU1OTU2IDQwLjE1OSA4LjQyMzU2IDM5LjU4MyA4LjQyMzU2QzM5LjAwNyA4LjQyMzU2IDM4LjQ5NSA4LjU1OTU2IDM4LjA0NyA4LjgzMTU2QzM3LjYxNSA5LjA4NzU2IDM3LjI3MSA5LjQ1NTU2IDM3LjAxNSA5LjkzNTU2QzM2Ljc3NSAxMC4zOTk2IDM2LjY1NSAxMC45MzU2IDM2LjY1NSAxMS41NDM2QzM2LjY1NSAxMi4xNjc2IDM2Ljc3NSAxMi43MTk2IDM3LjAxNSAxMy4xOTk2QzM3LjI3MSAxMy42NjM2IDM3LjYyMyAxNC4wMzE2IDM4LjA3MSAxNC4zMDM2QzM4LjUxOSAxNC41NTk2IDM5LjAzMSAxNC42ODc2IDM5LjYwNyAxNC42ODc2Wk01NC4yNDQ0IDE3LjU5MTZDNTMuNDEyNCAxNy41OTE2IDUyLjY2MDQgMTcuNDE1NiA1MS45ODg0IDE3LjA2MzZDNTEuMzE2NCAxNi43MTE2IDUwLjc4MDQgMTYuMjMxNiA1MC4zODA0IDE1LjYyMzZDNDkuOTgwNCAxNS4wMTU2IDQ5Ljc2NDQgMTQuMzM1NiA0OS43MzI0IDEzLjU4MzZWOS40NTU1NkM0OS43NjQ0IDguNzAzNTYgNDkuOTgwNCA4LjAzMTU2IDUwLjM4MDQgNy40Mzk1NkM1MC43OTY0IDYuODMxNTYgNTEuMzQwNCA2LjM1OTU2IDUyLjAxMjQgNi4wMjM1NkM1Mi42ODQ0IDUuNjg3NTYgNTMuNDI4NCA1LjUxOTU2IDU0LjI0NDQgNS41MTk1NkM1NS4zMTY0IDUuNTE5NTYgNTYuMjc2NCA1Ljc4MzU2IDU3LjEyNDQgNi4zMTE1NkM1Ny45NzI0IDYuODM5NTYgNTguNjM2NCA3LjU1OTU2IDU5LjExNjQgOC40NzE1NkM1OS42MTI0IDkuMzgzNTYgNTkuODYwNCAxMC40MTU2IDU5Ljg2MDQgMTEuNTY3NkM1OS44NjA0IDEyLjcwMzYgNTkuNjEyNCAxMy43Mjc2IDU5LjExNjQgMTQuNjM5NkM1OC42MzY0IDE1LjU1MTYgNTcuOTcyNCAxNi4yNzE2IDU3LjEyNDQgMTYuNzk5NkM1Ni4yNzY0IDE3LjMyNzYgNTUuMzE2NCAxNy41OTE2IDU0LjI0NDQgMTcuNTkxNlpNNDcuODEyNCAxNy4zNTE2Vi0wLjAwMDQzODY5SDUwLjk1NjRWOC42MTU1Nkw1MC40Mjg0IDExLjM5OTZMNTAuOTMyNCAxNC4yMzE2VjE3LjM1MTZINDcuODEyNFpNNTMuNzE2NCAxNC42ODc2QzU0LjI5MjQgMTQuNjg3NiA1NC43OTY0IDE0LjU1OTYgNTUuMjI4NCAxNC4zMDM2QzU1LjY3NjQgMTQuMDMxNiA1Ni4wMjA0IDEzLjY2MzYgNTYuMjYwNCAxMy4xOTk2QzU2LjUxNjQgMTIuNzE5NiA1Ni42NDQ0IDEyLjE2NzYgNTYuNjQ0NCAxMS41NDM2QzU2LjY0NDQgMTAuOTM1NiA1Ni41MTY0IDEwLjM5OTYgNTYuMjYwNCA5LjkzNTU2QzU2LjAyMDQgOS40NTU1NiA1NS42NzY0IDkuMDg3NTYgNTUuMjI4NCA4LjgzMTU2QzU0Ljc4MDQgOC41NTk1NiA1NC4yNjg0IDguNDIzNTYgNTMuNjkyNCA4LjQyMzU2QzUzLjExNjQgOC40MjM1NiA1Mi42MDQ0IDguNTU5NTYgNTIuMTU2NCA4LjgzMTU2QzUxLjcyNDQgOS4wODc1NiA1MS4zODA0IDkuNDU1NTYgNTEuMTI0NCA5LjkzNTU2QzUwLjg4NDQgMTAuMzk5NiA1MC43NjQ0IDEwLjkzNTYgNTAuNzY0NCAxMS41NDM2QzUwLjc2NDQgMTIuMTY3NiA1MC44ODQ0IDEyLjcxOTYgNTEuMTI0NCAxMy4xOTk2QzUxLjM4MDQgMTMuNjYzNiA1MS43MzI0IDE0LjAzMTYgNTIuMTgwNCAxNC4zMDM2QzUyLjYyODQgMTQuNTU5NiA1My4xNDA0IDE0LjY4NzYgNTMuNzE2NCAxNC42ODc2Wk02NS4yMTgyIDE3LjQ0NzZMNjAuMzcwMiA1Ljc1OTU2SDYzLjc3ODJMNjYuOTk0MiAxNC42ODc2SDY1Ljg0MjJMNjkuMTc4MiA1Ljc1OTU2SDcyLjYxMDJMNjcuNDUwMiAxNy40NDc2SDY1LjIxODJaTTYyLjAwMjIgMjIuMTk5Nkw2NS41MzAyIDE0LjczNTZMNjcuNDUwMiAxNy40NDc2TDY1LjMzODIgMjIuMTk5Nkg2Mi4wMDIyWiIgZmlsbD0iIzEzQkQ3RSIvPgo8L2c+CjwvZz4KPC9zdmc+Cg==",
+  "buoy_horizontal_orange": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAxIiBoZWlnaHQ9IjUyIiB2aWV3Qm94PSIwIDAgMTAxIDUyIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cGF0aCBkPSJNMTcuMDA2OCAwSDg0LjQ2MTlWNTEuODQxNkgxNy4wMDY4TDE3LjAwNjggMFoiIGZpbGw9IiNGRjY3MDAiLz4KPHBhdGggZD0iTTAgMTYuODYzOEMwIDcuNTUwMTcgNy41NTAxNiAwIDE2Ljg2MzggMFYwTDE2Ljg2MzggNTEuODQxNlY1MS44NDE2QzcuNTUwMTYgNTEuODQxNiAwIDQ0LjI5MTQgMCAzNC45Nzc4TDAgMTYuODYzOFoiIGZpbGw9IiNGRjY3MDAiLz4KPHBhdGggZD0iTTg0LjEzNTcgMFYwQzkzLjQ0OTMgMCAxMDAuOTk5IDcuNTUwMTYgMTAwLjk5OSAxNi44NjM4VjM0Ljk3NzhDMTAwLjk5OSA0NC4yOTE0IDkzLjQ0OTMgNTEuODQxNiA4NC4xMzU3IDUxLjg0MTZWNTEuODQxNlYwWiIgZmlsbD0iI0ZGNjcwMCIvPgo8cGF0aCBkPSJNODAuNCAyLjE5NDdlLTA3TDgwLjQgNTEuODQxNiIgc3Ryb2tlLXdpZHRoPSI2LjgiIHN0cm9rZT0iI0ZGQ0M0RCIvPgo8cGF0aCBkPSJNMjAuMDkzNCAyLjE5NDdlLTA3TDIwLjA5MzQgNTEuODQxNiIgc3Ryb2tlLXdpZHRoPSI2LjgiIHN0cm9rZT0iI0ZGQ0M0RCIvPgo8L3N2Zz4K",
+  "bottle_blue": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDUiIGhlaWdodD0iMTEwIiB2aWV3Qm94PSIwIDAgNDUgMTEwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cGF0aCBkPSJNNS4zOTk5OSAxMDkuNDM4SDM4Ljk5MjNDNDAuMjk0NSAxMDkuNDM4IDQwLjk0NTUgMTA5LjQzOCA0MS40NzggMTA5LjI4OEM0Mi44MTc1IDEwOC45MSA0My44NjQzIDEwNy44NjMgNDQuMjQyMSAxMDYuNTI0QzQ0LjM5MjMgMTA1Ljk5MSA0NC4zOTIzIDEwNS4zNCA0NC4zOTIzIDEwNC4wMzhWMjQuOTA1MUM0NC4zOTIzIDI0LjM4NyA0NC4zOTIzIDI0LjEyNzkgNDQuMzYwNyAyMy44NzgyQzQ0LjI4MjQgMjMuMjU3OSA0NC4wNTk3IDIyLjY2NDcgNDMuNzEwNiAyMi4xNDZDNDMuNTcgMjEuOTM3MiA0My4zOTk2IDIxLjc0MjIgNDMuMDU4NyAyMS4zNTJMNDMuMDU4NyAyMS4zNTJMMzAuOTYyIDcuNTA3NThMMzAuOTYyIDcuNTA3NTNDMzAuNTUxOSA3LjAzODI0IDMwLjM0NjkgNi44MDM1OSAzMC4xMTg5IDYuNjEwMTlDMjkuNTUxNyA2LjEyOTEgMjguODYxNiA1LjgxNTY2IDI4LjEyNjEgNS43MDUwOUMyNy44MzA0IDUuNjYwNjQgMjcuNTE4OCA1LjY2MDY0IDI2Ljg5NTYgNS42NjA2NEgxNy4xNjdDMTYuNTMzOSA1LjY2MDY0IDE2LjIxNzQgNS42NjA2NCAxNS45MTc1IDUuNzA2MzhDMTUuMTcxNSA1LjgyMDE4IDE0LjQ3MjkgNi4xNDI2OCAxMy45MDI0IDYuNjM2NjNDMTMuNjczMSA2LjgzNTE4IDEzLjQ2NzggNy4wNzYwOSAxMy4wNTcxIDcuNTU3OTFMMTMuMDU3MSA3LjU1NzkyTDEuMjkwMTQgMjEuMzY0NUMwLjk2MDE5MiAyMS43NTE2IDAuNzk1MjE3IDIxLjk0NTIgMC42NTkxODkgMjIuMTUxOEMwLjMyMTMwNSAyMi42NjQ5IDAuMTA2MTcgMjMuMjQ5IDAuMDMwNDc0MiAyMy44NTg3QzAgMjQuMTA0MiAwIDI0LjM1ODUgMCAyNC44NjcyTDAgMTA0LjAzOEMwIDEwNS4zNCAwIDEwNS45OTEgMC4xNTAxNzkgMTA2LjUyNEMwLjUyNzk0NyAxMDcuODYzIDEuNTc0NzggMTA4LjkxIDIuOTE0MjQgMTA5LjI4OEMzLjQ0NjczIDEwOS40MzggNC4wOTc4MiAxMDkuNDM4IDUuMzk5OTkgMTA5LjQzOFoiIGZpbGw9IiM1OUM3RjgiLz4KPHBhdGggZD0iTTE0LjQyNzcgMS4zNUMxNC40Mjc3IDEuMDI0NDYgMTQuNDI3NyAwLjg2MTY4MyAxNC40NjUzIDAuNzI4NTZDMTQuNTU5NyAwLjM5MzY5NCAxNC44MjE0IDAuMTMxOTg3IDE1LjE1NjMgMC4wMzc1NDQ4QzE1LjI4OTQgMCAxNS40NTIyIDAgMTUuNzc3NyAwTDI4LjA2MDEgMEMyOC4zODU3IDAgMjguNTQ4NCAwIDI4LjY4MTYgMC4wMzc1NDQ4QzI5LjAxNjQgMC4xMzE5ODcgMjkuMjc4MSAwLjM5MzY5NCAyOS4zNzI2IDAuNzI4NTZDMjkuNDEwMSAwLjg2MTY4MyAyOS40MTAxIDEuMDI0NDYgMjkuNDEwMSAxLjM1VjQuNzgyM0MyOS40MTAxIDUuMTA3ODQgMjkuNDEwMSA1LjI3MDYyIDI5LjM3MjYgNS40MDM3NEMyOS4yNzgxIDUuNzM4NjEgMjkuMDE2NCA2LjAwMDMxIDI4LjY4MTYgNi4wOTQ3NkMyOC41NDg0IDYuMTMyMyAyOC4zODU3IDYuMTMyMyAyOC4wNjAxIDYuMTMyM0gxNS43Nzc3QzE1LjQ1MjIgNi4xMzIzIDE1LjI4OTQgNi4xMzIzIDE1LjE1NjMgNi4wOTQ3NkMxNC44MjE0IDYuMDAwMzEgMTQuNTU5NyA1LjczODYxIDE0LjQ2NTMgNS40MDM3NEMxNC40Mjc3IDUuMjcwNjIgMTQuNDI3NyA1LjEwNzg0IDE0LjQyNzcgNC43ODIzVjEuMzVaIiBmaWxsPSIjMEU3NEUwIi8+CjxwYXRoIGQ9Ik0wLjAxNjU4NSA0MC44OTg1QzAuMDE2NTg5IDQwLjU3MjkgMC4wMTY1OTEgNDAuNDEwMSAwLjA1NDEzNzQgNDAuMjc3QzAuMTQ4NTgzIDM5Ljk0MjIgMC40MTAyOTQgMzkuNjgwNSAwLjc0NTE2MSAzOS41ODZDMC44NzgyODUgMzkuNTQ4NSAxLjA0MTA2IDM5LjU0ODUgMS4zNjY2IDM5LjU0ODVMNDIuOTg0NyAzOS41NDlDNDMuMzEwMiAzOS41NDkgNDMuNDczIDM5LjU0OSA0My42MDYxIDM5LjU4NjVDNDMuOTQxIDM5LjY4MSA0NC4yMDI3IDM5Ljk0MjcgNDQuMjk3MSA0MC4yNzc2QzQ0LjMzNDYgNDAuNDEwNyA0NC4zMzQ2IDQwLjU3MzUgNDQuMzM0NiA0MC44OTlMNDQuMzM0MyA2Ny40NzUzQzQ0LjMzNDMgNjcuODAwOCA0NC4zMzQzIDY3Ljk2MzYgNDQuMjk2OCA2OC4wOTY3QzQ0LjIwMjMgNjguNDMxNiA0My45NDA2IDY4LjY5MzMgNDMuNjA1NyA2OC43ODc4QzQzLjQ3MjYgNjguODI1MyA0My4zMDk4IDY4LjgyNTMgNDIuOTg0MyA2OC44MjUzTDEuMzY2MjQgNjguODI0OEMxLjA0MDcgNjguODI0OCAwLjg3NzkyNSA2OC44MjQ4IDAuNzQ0ODAxIDY4Ljc4NzJDMC40MDk5MzcgNjguNjkyOCAwLjE0ODIzMyA2OC40MzExIDAuMDUzNzk1MSA2OC4wOTYyQzAuMDE2MjUyIDY3Ljk2MzEgMC4wMTYyNTQgNjcuODAwMyAwLjAxNjI1OCA2Ny40NzQ4TDAuMDE2NTg1IDQwLjg5ODVaIiBmaWxsPSIjMEU3NEUwIi8+Cjwvc3ZnPgo=",
+  "cup_red": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzYiIGhlaWdodD0iNTEiIHZpZXdCb3g9IjAgMCAzNiA1MSIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTAuMTIzMDQ3IDAuMjY2NjAySDM1Ljg3NzZMMjguNzI2NyA0Ni43NDc1QzI4LjcyNjcgNDkuMTMxMiAyNy41MzQ5IDUwLjMyMyAyNS4xNTEyIDUwLjMyM0gxMC44NDk0QzguNDY1NzggNTAuMzIzIDcuMjczOTYgNDkuMTMxMiA3LjI3Mzk2IDQ2Ljc0NzVMMC4xMjMwNDcgMC4yNjY2MDJaIiBmaWxsPSIjRkYzMDQ1Ii8+CjxwYXRoIGQ9Ik0wIDBIMzZMMzUuOCAzLjcxNDI5QzM1LjggMy45MDQ3NiAzNC42IDQgMzIuMiA0SDMuOEMxLjQgNCAwLjIgMy45MDQ3NiAwLjIgMy43MTQyOUwwIDBaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K",
+  "plastic_bag_sky_blue": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTciIGhlaWdodD0iNTciIHZpZXdCb3g9IjAgMCA1NyA1NyIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTMuNDUwNzUgMTguMTE2NEw3Ljc2NDE4IDEuMjM5NzhlLTA1TDE5Ljg0MTggMS4yMzk3OGUtMDVWMTguMTE2NEwzNi4yMzI4IDE4LjExNjRWMS4yMzk3OGUtMDVMNDguMzEwNCAxLjIzOTc4ZS0wNUw1My40ODY2IDE4LjExNjRMNTYuMDc0NiA1MC44OTg1QzU2LjA3NDYgNTQuOTI0NCA1My43NzQxIDU2LjkzNzMgNDkuMTczMSA1Ni45MzczSDYuOTAxNDlDMi4zMDA1IDU2LjkzNzMgMCA1NC45MjQ0IDAgNTAuODk4NUwzLjQ1MDc1IDE4LjExNjRaIiBmaWxsPSIjNTlDN0Y1Ii8+CjxwYXRoIGQ9Ik0xMi4wNzgzIDI0LjE1NTVMOS40OTAyMyA0NS43MjI2Wk00My4xMzUgMjEuNTY3NEw0Ni41ODU4IDQ1LjcyMjZaIiBmaWxsPSJibGFjayIvPgo8cGF0aCBkPSJNMTIuMDc4MyAyNC4xNTU1TDkuNDkwMjMgNDUuNzIyNk00My4xMzUgMjEuNTY3NEw0Ni41ODU4IDQ1LjcyMjYiIHN0cm9rZS13aWR0aD0iMS4yOTQwMyIgc3Ryb2tlPSIjNTlDN0Y1Ii8+Cjwvc3ZnPgo=",
+  "straw_striped": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNzkiIHZpZXdCb3g9IjAgMCA0OCA3OSIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTQ3LjIwNzIgNC4zMzU5TDM5LjAxMzggMC4wODY1MzU4QzM4LjYzNjcgLTAuMTA5MDM2IDM4LjE3MjUgMC4wMzgxMTQxIDM3Ljk3NjkgMC40MTUyMDVMMC4wODY3NDk5IDczLjQ3MjlDLTAuMTA4ODIyIDczLjg1IDAuMDM4MzI3MyA3NC4zMTQzIDAuNDE1NDE4IDc0LjUwOThMOC42MDg4MSA3OC43NTkyQzguOTg1OSA3OC45NTQ4IDkuNDUwMTMgNzguODA3NiA5LjY0NTcxIDc4LjQzMDVMNDcuNTM1OSA1LjM3MjhDNDcuNzMxNSA0Ljk5NTcxIDQ3LjU4NDMgNC41MzE0NyA0Ny4yMDcyIDQuMzM1OVoiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik0zNS4wMTg2IDYuMTI1TDQxLjY0NTQgMTYuNzM2TDM4LjEwNDMgMjMuNTYzOUwzMS40Nzc0IDEyLjk1MjhMMzUuMDE4NiA2LjEyNVoiIGZpbGw9IiNGRjMwNDUiLz4KPHBhdGggZD0iTTI1LjgxMDUgMjMuODc1NUwzMi40Mzc0IDM0LjQ4NjVMMjguODk2MyA0MS4zMTQzTDIyLjI2OTQgMzAuNzAzM0wyNS44MTA1IDIzLjg3NTVaIiBmaWxsPSIjRkYzMDQ1Ii8+CjxwYXRoIGQ9Ik0xNi42MDQ1IDQxLjYyODlMMjMuMjMxNCA1Mi4yMzk5TDE5LjY5MDIgNTkuMDY3OEwxMy4wNjM0IDQ4LjQ1NjdMMTYuNjA0NSA0MS42Mjg5WiIgZmlsbD0iI0ZGMzA0NSIvPgo8cGF0aCBkPSJNNy4zOTk0MSA1OS4zODA5TDE0LjAyNjMgNjkuOTkxOUwxMC40ODUyIDc2LjgxOTdMMy44NTgyNyA2Ni4yMDg3TDcuMzk5NDEgNTkuMzgwOVoiIGZpbGw9IiNGRjMwNDUiLz4KPC9zdmc+Cg==",
+  "soda_can_mint": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDUiIGhlaWdodD0iNjUiIHZpZXdCb3g9IjAgMCA0NSA2NSIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iMS4wMjA1MSIgeT0iMS4wMjAyNiIgd2lkdGg9IjQzLjg2IiBoZWlnaHQ9IjYzLjI0IiByeD0iOC4xNiIgZmlsbD0iIzRGQkE5MCIvPgo8ZWxsaXBzZSBjeD0iMjIuNDQxIiBjeT0iMy41NyIgcng9IjIyLjQ0IiByeT0iMy41NyIgZmlsbD0iIzk5OUI5QSIvPgo8ZWxsaXBzZSBjeD0iMjMuNDU5OCIgY3k9IjIuNTUwMjYiIHJ4PSI2LjEyIiByeT0iMS41MyIgZmlsbD0iIzI5MkUyQiIvPgo8L3N2Zz4K",
+  "tin_can_red": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTQiIGhlaWdodD0iNDMiIHZpZXdCb3g9IjAgMCA1NCA0MyIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTUzLjIyODUgNy40NDk5NUwtMy44MTQ3ZS0wNiA3LjQ0OTk2TC0xLjI1NTM0ZS0wNiAzNi43MjU2Qy05LjE0MDg3ZS0wNyA0MC42MjkxIDguODcxNDIgNDIuNTgwOCAyNi42MTQzIDQyLjU4MDhDNDQuMzU3MSA0Mi41ODA4IDUzLjIyODUgNDAuNjI5MSA1My4yMjg1IDM2LjcyNTZMNTMuMjI4NSA3LjQ0OTk1WiIgZmlsbD0iIzcxNzA3NSIvPgo8cGF0aCBkPSJNNTMuMjI5NSAxNC4zNjk5QzM1LjQ4NjcgMjAuMDQ3NiAxNy43NDM4IDIwLjA0NzYgMC4wMDA5NzI3NDggMTQuMzY5OUwwLjAwMDk3NDMzIDMyLjQ2NzZDMTcuNzQzOCAzOC4xNDUzIDM1LjQ4NjcgMzguMTQ1MyA1My4yMjk1IDMyLjQ2NzZMNTMuMjI5NSAxNC4zNjk5WiIgZmlsbD0iI0VEMjYzMCIvPgo8cGF0aCBkPSJNMjYuNjE3MiAxNC45MDRDMTEuOTE4NSAxNC45MDQgMC4wMDI5MjY4OCAxMS41Njc2IDAuMDAyOTI2NTIgNy40NTJDMC4wMDI5MjYxNiAzLjMzNjM4IDExLjkxODUgMy42MTE2OWUtMDYgMjYuNjE3MiAyLjMyNjY5ZS0wNkM0MS4zMTU4IDEuMDQxN2UtMDYgNTMuMjMxNCAzLjMzNjM3IDUzLjIzMTQgNy40NTE5OUM1My4yMzE1IDExLjU2NzYgNDEuMzE1OCAxNC45MDQgMjYuNjE3MiAxNC45MDRaIiBmaWxsPSIjNzE3MDc1Ii8+CjxwYXRoIGQ9Ik0yNi42MTc1IDEyLjI0MThDMTMuNjgyNyAxMi4yNDE4IDMuMTk2OTkgMTAuMDk3IDMuMTk2OTkgNy40NTEyMkMzLjE5Njk5IDQuODA1NDYgMTMuNjgyNyAyLjY2MDY1IDI2LjYxNzUgMi42NjA2NUMzOS41NTI0IDIuNjYwNjUgNTAuMDM4MSA0LjgwNTQ1IDUwLjAzODEgNy40NTEyMUM1MC4wMzgxIDEwLjA5NyAzOS41NTI0IDEyLjI0MTggMjYuNjE3NSAxMi4yNDE4WiIgZmlsbD0iIzk5OUI5QSIvPgo8cGF0aCBkPSJNMjUuMDE5NSA3LjQ1MjE0QzI1LjAxOTUgNi4wMzI3MSAyMy45NTUgNS4zMjMgMjEuODI1OCA1LjMyM0wxNS45NzA3IDUuMzIzQzEzLjg0MTUgNS4zMjMgMTIuNzc3IDYuMDMyNzEgMTIuNzc3IDcuNDUyMTRDMTIuNzc3IDguODcxNTcgMTMuODQxNSA5LjU4MTI4IDE1Ljk3MDcgOS41ODEyOEwyMS44MjU4IDkuNTgxMjhDMjMuOTU1IDkuNTgxMjggMjUuMDE5NSA4Ljg3MTU3IDI1LjAxOTUgNy40NTIxNFoiIGZpbGw9IiM3MTcwNzUiLz4KPC9zdmc+Cg==",
+  "glass_bottle_green": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzQiIGhlaWdodD0iMTE3IiB2aWV3Qm94PSIwIDAgMzQgMTE3IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cGF0aCBkPSJNOC44NTUwNyAwLjQzNzg0M0M4Ljk3NzA5IDAuMTcxMDg2IDkuMjQzNDggMCA5LjUzNjgyIDBMMjQuMTM5NCAwQzI0LjQyMDEgMCAyNC42NzYyIDAuMTYwMjgyIDI0Ljc5ODggMC40MTI3NjNDMjUuNjczNyAyLjIxNDAzIDI1LjM1MzQgNC4zNjc2NCAyMy45OTIyIDUuODM2MzFMMjMuMjgwNCA2LjYwNDI5QzIzLjI3NjUgNi42MDg0NiAyMy4yNzQ2IDYuNjEwNTUgMjMuMjcyNyA2LjYxMjU4QzIzLjE2MjIgNi43MzM5MiAyMy4xMDIzIDYuODkzMDIgMjMuMTA1NSA3LjA1NzE0QzIzLjEwNTYgNy4wNTk4OCAyMy4xMDU3IDcuMDYyNzMgMjMuMTA1OCA3LjA2ODQxTDI0LjM0ODMgNTEuMjVIOS4zMDUzNEwxMC41NDc4IDcuMDY5NTZDMTAuNTQ4MSA3LjA1NzA3IDEwLjU0ODMgNy4wNTA4MiAxMC41NDg0IDcuMDQ0NzhDMTAuNTQ5OCA2Ljg4ODYxIDEwLjQ5NDIgNi43MzcyNyAxMC4zOTIxIDYuNjE5MTZDMTAuMzg4MSA2LjYxNDU5IDEwLjM4MzkgNi42MDk5NCAxMC4zNzU2IDYuNjAwNjVMOS42NzczMyA1LjgyMzU1QzguMzU1MjggNC4zNTIyMSA4LjAzMjI4IDIuMjM2NjUgOC44NTUwNyAwLjQzNzg0M1oiIGZpbGw9IiMwMDk5NTciLz4KPHBhdGggZD0iTTAgNTMuMDQ5MUMwIDUxLjM5OTUgMCA1MC41NzQ2IDAuMTY1MjgxIDQ5Ljg0NjZDMC41Nzg3ODggNDguMDI1MiAxLjczODA3IDQ2LjQ2MTEgMy4zNjA0NiA0NS41MzU2QzQuMDA4OTQgNDUuMTY1NyA0Ljc5ODA4IDQ0LjkyNTggNi4zNzYzNSA0NC40NDZMMTQuMjE5IDQyLjA2MTZDMTQuOTA0NyA0MS44NTMyIDE1LjI0NzYgNDEuNzQ4OSAxNS41OTI2IDQxLjY4MTlDMTYuNDQ4OSA0MS41MTU3IDE3LjMyOTIgNDEuNTE1OSAxOC4xODU0IDQxLjY4MjVDMTguNTMwNCA0MS43NDk3IDE4Ljg3MzIgNDEuODU0MSAxOS41NTg4IDQyLjA2MjlMMjcuMzc3NyA0NC40NDRDMjguOTU1IDQ0LjkyNDMgMjkuNzQzNyA0NS4xNjQ1IDMwLjM5MTggNDUuNTM0NUMzMi4wMTMyIDQ2LjQ2MDIgMzMuMTcxNiA0OC4wMjQgMzMuNTg0OCA0OS44NDQ3QzMzLjc1IDUwLjU3MjUgMzMuNzUgNTEuMzk3IDMzLjc1IDUzLjA0NThMMzMuNzUgMTE0LjAwMkMzMy43NSAxMTQuNTQ0IDMzLjc1IDExNC44MTUgMzMuNjg3NSAxMTUuMDM3QzMzLjUzMDIgMTE1LjU5NCAzMy4wOTQ0IDExNi4wMyAzMi41MzY4IDExNi4xODdDMzIuMzE1MiAxMTYuMjUgMzIuMDQ0MSAxMTYuMjUgMzEuNTAyIDExNi4yNUgyLjI0Nzk3QzEuNzA1ODkgMTE2LjI1IDEuNDM0ODQgMTE2LjI1IDEuMjEzMTcgMTE2LjE4N0MwLjY1NTU2NCAxMTYuMDMgMC4yMTk3NzkgMTE1LjU5NCAwLjA2MjUxODEgMTE1LjAzN0MwIDExNC44MTUgMCAxMTQuNTQ0IDAgMTE0LjAwMkwwIDUzLjA0OTFaIiBmaWxsPSIjMDA5OTU3Ii8+Cjwvc3ZnPgo=",
+  "bottle_crumpled_yellow": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzgiIGhlaWdodD0iNTYiIHZpZXdCb3g9IjAgMCAzOCA1NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTcuMiAzLjE2NTY1SDMwLjc2MzZMMzYuOTczNCAxNC40NTYxQzM3LjYyMyAxNS42MzcyIDM3Ljk2MzYgMTYuOTYzNCAzNy45NjM2IDE4LjMxMTRWMjIuMDMxMkMzNy45NjM2IDIyLjUzNTYgMzcuODI2NiAyMy4wMzA1IDM3LjU2NzEgMjMuNDYzTDM2LjkyNjkgMjQuNTNDMzUuMTg0NiAyNy40MzM3IDM1LjQwNiAzMS4xMDk2IDM3LjQ4NDIgMzMuNzgzMkMzNy43OTQ5IDM0LjE4MyAzNy45NjM2IDM0LjY3NSAzNy45NjM2IDM1LjE4MTRWNDkuOTI5M0MzNy45NjM2IDUzLjAyMjEgMzUuNDU2NCA1NS41MjkzIDMyLjM2MzYgNTUuNTI5M0g1LjZDMi41MDcyMSA1NS41MjkzIDAgNTMuMDIyMSAwIDQ5LjkyOTNWMzUuMTgxNEMwIDM0LjY3NSAwLjE2ODcwOSAzNC4xODMgMC40Nzk0NzggMzMuNzgzMkMyLjU1NzYyIDMxLjEwOTYgMi43NzkwMSAyNy40MzM3IDEuMDM2NzggMjQuNTNMMC4zOTY1ODMgMjMuNDYzQzAuMTM3MDggMjMuMDMwNSAwIDIyLjUzNTYgMCAyMi4wMzEyVjE4LjMxMTRDMCAxNi45NjM0IDAuMzQwNjM1IDE1LjYzNzIgMC45OTAyNzMgMTQuNDU2MUw3LjIgMy4xNjU2NVoiIGZpbGw9IiNGRkNDNEQiLz4KPHJlY3QgeD0iNi4xODE2NCIgd2lkdGg9IjI1LjYiIGhlaWdodD0iMy4yIiByeD0iMS42IiBmaWxsPSIjMDFCQzUyIi8+Cjwvc3ZnPgo=",
+  "paper_cup_white": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzYiIGhlaWdodD0iNTEiIHZpZXdCb3g9IjAgMCAzNiA1MSIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTAgMEgzNS43NTQ2TDI4LjYwMzYgNDYuNDgwOUMyOC42MDM2IDQ4Ljg2NDYgMjcuNDExOCA1MC4wNTY0IDI1LjAyODIgNTAuMDU2NEgxMC43MjY0QzguMzQyNzMgNTAuMDU2NCA3LjE1MDkxIDQ4Ljg2NDYgNy4xNTA5MSA0Ni40ODA5TDAgMFoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo="
+};
 const GALLERY_LIMIT = 30;
 const TYPE_NAMES = { plogging: "플로깅", plobbing: "플로빙" };
 
@@ -315,11 +309,10 @@ let lastTopID = null;
 let records = [];
 let selected = null;
 let stream = null;
-let photoBlob = null;
-let photoURL = null;
 let isCounting = false;
 let shareFile = null;
 let framedBlob = null;
+let framedURL = null;
 
 const $ = (id) => document.getElementById(id);
 
@@ -475,7 +468,7 @@ async function refresh() {
       records = (await fetchRecords(goal)).map(toRecord);
       renderRecords();
     }
-    renderBoothTop();
+    drawPreviewOverlay();
     $("status").className = "status";
     $("status").textContent = `실시간 연결 중 · ${new Date().toLocaleTimeString("ko-KR")}`;
   } catch (error) {
@@ -499,24 +492,158 @@ function goHome() {
 
 document.querySelectorAll("[data-home]").forEach((b) => b.addEventListener("click", goHome));
 
-// ---------- 화면 2·3 공통 상단 ----------
+// ---------- 프레임 안 정보와 쓰레기 그리기 ----------
+// 화면 미리보기와 저장하는 사진이 같은 함수로 그려서, 보이는 그대로 저장돼요.
 
-function renderBoothTop() {
-  const collected = goal ? collectedCount(goal) : 0;
-  const target = goal ? goal.target_count : 0;
-  const pct = goal ? progressPercent(goal) : 0;
-  const html = `
-    <div class="booth-goal">
-      <div class="slogan">우리가 만드는 푸른 바다</div>
-      <div class="ratio">${collected.toLocaleString()}<span>/${target.toLocaleString()}</span></div>
-      <div class="track"><div class="bar" style="width:${pct}%"></div></div>
-    </div>
-    <div class="booth-brand">
-      <div class="date">${todayText()}</div>
-      <img src="logo.svg" alt="Plobby">
-    </div>`;
-  document.querySelectorAll("[data-booth-top]").forEach((el) => { el.innerHTML = html; });
+let assetsPromise = null;
+
+function loadAssets() {
+  assetsPromise ??= Promise.all([
+    loadImage(ASSET_URLS.logo),
+    Promise.all(TRASH.map((t) => loadImage(ASSET_URLS[t.name]))),
+    document.fonts.load("800 40px Pretendard"),
+    document.fonts.load("700 40px Pretendard"),
+    document.fonts.load("600 40px Pretendard"),
+    document.fonts.load("500 40px Pretendard")
+  ]).then(([logo, trash]) => ({ logo, trash }))
+    .catch((error) => { assetsPromise = null; throw error; });
+  return assetsPromise;
 }
+
+function overlayInfo() {
+  const record = selected ?? {};
+  return {
+    collected: goal ? collectedCount(goal) : 0,
+    target: goal ? goal.target_count : 0,
+    pct: goal ? progressPercent(goal) : 0,
+    date: todayText(),
+    type: record.type,
+    label: record.type ? recordLabel(record) : "",
+    count: record.count ?? 0
+  };
+}
+
+const TAG_COLORS = {
+  plogging: { bg: "#E6F4EC", fg: "#0E7A4E", plus: "#7CE0A8" },
+  plobbing: { bg: "#E3F0FB", fg: "#1565C0", plus: "#9CCBFF" }
+};
+
+function drawOverlay(ctx, W, H, info, assets) {
+  const U = H / 100;
+  const P = 5 * U;
+  const font = (weight, size) => `${weight} ${size}px Pretendard, -apple-system, sans-serif`;
+  const shadow = (on) => {
+    ctx.shadowColor = on ? "rgba(0,0,0,.35)" : "transparent";
+    ctx.shadowBlur = on ? 1.2 * U : 0;
+    ctx.shadowOffsetY = on ? 0.2 * U : 0;
+  };
+
+  ctx.save();
+
+  // 글자가 잘 보이도록 위아래를 살짝 어둡게 해요
+  let g = ctx.createLinearGradient(0, 0, 0, 30 * U);
+  g.addColorStop(0, "rgba(0,0,0,.45)");
+  g.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, 30 * U);
+  g = ctx.createLinearGradient(0, H - 38 * U, 0, H);
+  g.addColorStop(0, "rgba(0,0,0,0)");
+  g.addColorStop(1, "rgba(0,0,0,.45)");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, H - 38 * U, W, 38 * U);
+
+  // 하단에 깔린 쓰레기
+  TRASH.forEach((t, i) => {
+    const img = assets.trash[i];
+    const h = t.h * U;
+    const w = h * (img.width / img.height);
+    ctx.save();
+    ctx.translate(W * t.x / 100, H - t.bottom * U);
+    ctx.rotate(t.r * Math.PI / 180);
+    ctx.drawImage(img, -w / 2, -h, w, h);
+    ctx.restore();
+  });
+
+  ctx.textBaseline = "top";
+  ctx.fillStyle = "#FFFFFF";
+
+  // 좌측 상단: 문구, 현재/목표, 진행 바
+  shadow(true);
+  ctx.textAlign = "left";
+  ctx.font = font(800, 4.4 * U);
+  ctx.fillText("우리가 만드는 푸른 바다", P, P);
+  const ratioY = P + 4.4 * U * 1.3 + 0.6 * U;
+  const current = info.collected.toLocaleString();
+  ctx.font = font(700, 3.2 * U);
+  ctx.fillText(current, P, ratioY);
+  const currentW = ctx.measureText(current).width;
+  ctx.font = font(500, 3.2 * U);
+  ctx.fillStyle = "rgba(255,255,255,.8)";
+  ctx.fillText(`/${info.target.toLocaleString()}`, P + currentW + 0.3 * U, ratioY);
+  shadow(false);
+  const barY = ratioY + 3.2 * U * 1.3 + 0.8 * U, barW = 40 * U, barH = 1.4 * U;
+  ctx.fillStyle = "rgba(255,255,255,.35)";
+  roundRect(ctx, P, barY, barW, barH, barH / 2);
+  ctx.fill();
+  if (info.pct > 0) {
+    ctx.fillStyle = "#13BD7E";
+    roundRect(ctx, P, barY, Math.max(barH, barW * info.pct / 100), barH, barH / 2);
+    ctx.fill();
+  }
+
+  // 우측 상단: 날짜, 로고
+  shadow(true);
+  ctx.fillStyle = "#FFFFFF";
+  ctx.textAlign = "right";
+  ctx.font = font(600, 3 * U);
+  ctx.fillText(info.date, W - P, P);
+  const logoH = 5.4 * U, logoW = logoH * (assets.logo.width / assets.logo.height);
+  ctx.drawImage(assets.logo, W - P - logoW, P + 3 * U * 1.3 + 1 * U, logoW, logoH);
+
+  // 좌측 하단: 태그, 기록 문구 / 우측 하단: +n개 (같은 줄)
+  if (info.label) {
+    const colors = TAG_COLORS[info.type] ?? TAG_COLORS.plogging;
+    const lineBottom = H - 22 * U;
+    ctx.textBaseline = "bottom";
+    ctx.textAlign = "left";
+    ctx.font = font(700, 3.6 * U);
+    ctx.fillText(info.label, P, lineBottom);
+    ctx.textAlign = "right";
+    ctx.font = font(800, 3.6 * U);
+    ctx.fillStyle = colors.plus;
+    ctx.fillText(`+${info.count.toLocaleString()}개`, W - P, lineBottom);
+
+    shadow(false);
+    const tagText = TYPE_NAMES[info.type] ?? "";
+    ctx.font = font(700, 2.4 * U);
+    const tagW = ctx.measureText(tagText).width + 2.8 * U, tagH = 4 * U;
+    const tagY = lineBottom - 3.6 * U * 1.25 - 1.2 * U - tagH;
+    ctx.fillStyle = colors.bg;
+    roundRect(ctx, P, tagY, tagW, tagH, 1 * U);
+    ctx.fill();
+    ctx.fillStyle = colors.fg;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(tagText, P + tagW / 2, tagY + tagH / 2 + 0.1 * U);
+  }
+
+  ctx.restore();
+}
+
+async function drawPreviewOverlay() {
+  const canvas = $("overlay");
+  if (!$("camera").classList.contains("active")) return;
+  const assets = await loadAssets();
+  const rect = $("frame").getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = Math.round(rect.width * dpr);
+  canvas.height = Math.round(rect.height * dpr);
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawOverlay(ctx, canvas.width, canvas.height, overlayInfo(), assets);
+}
+
+new ResizeObserver(() => drawPreviewOverlay()).observe($("frame"));
 
 // ---------- 화면 2: 사진 촬영 ----------
 
@@ -526,19 +653,15 @@ function recordLabel(record) {
 
 async function openCamera(record) {
   selected = record;
-  $("cameraTag").className = `tag ${record.type}`;
-  $("cameraTag").textContent = TYPE_NAMES[record.type] ?? "";
-  $("cameraRecord").textContent = recordLabel(record);
-  $("cameraPlus").className = `plus ${record.type}`;
-  $("cameraPlus").textContent = `+${record.count}개`;
-  renderBoothTop();
   show("camera");
+  drawPreviewOverlay();
   await startPreview();
 }
 
 async function startPreview() {
   clearPhoto();
   $("shot").hidden = true;
+  $("overlay").hidden = false;
   $("video").hidden = false;
   if (stream) $("video").play().catch(() => {});
   $("countdown").hidden = true;
@@ -612,90 +735,78 @@ async function startCountdown() {
   await capture();
 }
 
+/** 화면에 보이는 프레임 그대로(카메라 + 정보 + 쓰레기) 사진을 만들어요. */
 async function capture() {
   const video = $("video");
+  const rect = $("frame").getBoundingClientRect();
+  const ratio = rect.width / rect.height;
+  const W = ratio >= 1 ? PHOTO_LONG_EDGE : Math.round(PHOTO_LONG_EDGE * ratio);
+  const H = ratio >= 1 ? Math.round(PHOTO_LONG_EDGE / ratio) : PHOTO_LONG_EDGE;
+
   const canvas = document.createElement("canvas");
-  canvas.width = PHOTO_WIDTH;
-  canvas.height = PHOTO_HEIGHT;
+  canvas.width = W;
+  canvas.height = H;
   const ctx = canvas.getContext("2d");
 
-  // 프레임(4:3) 비율로 가운데를 잘라내고, 미리보기처럼 좌우를 뒤집어요
+  // 프레임 비율로 가운데를 잘라내고(object-fit: cover와 같아요), 미리보기처럼 좌우를 뒤집어요
   const vw = video.videoWidth, vh = video.videoHeight;
-  const ratio = PHOTO_WIDTH / PHOTO_HEIGHT;
   let sw = vw, sh = vw / ratio;
   if (sh > vh) { sh = vh; sw = vh * ratio; }
-  const sx = (vw - sw) / 2, sy = (vh - sh) / 2;
-  ctx.translate(PHOTO_WIDTH, 0);
+  ctx.save();
+  ctx.translate(W, 0);
   ctx.scale(-1, 1);
-  ctx.drawImage(video, sx, sy, sw, sh, 0, 0, PHOTO_WIDTH, PHOTO_HEIGHT);
+  ctx.drawImage(video, (vw - sw) / 2, (vh - sh) / 2, sw, sh, 0, 0, W, H);
+  ctx.restore();
+  try {
+    drawOverlay(ctx, W, H, overlayInfo(), await loadAssets());
+  } catch (error) {
+    // 그림을 불러오지 못해도 사진은 남겨요.
+  }
 
   const flash = $("flash");
   flash.classList.remove("on");
   void flash.offsetWidth;
   flash.classList.add("on");
 
-  photoBlob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.9));
-  photoURL = URL.createObjectURL(photoBlob);
-  $("shot").src = photoURL;
+  try {
+    framedBlob = await new Promise((resolve, reject) =>
+      canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("toBlob")), "image/jpeg", 0.9));
+  } catch (error) {
+    framedBlob = null;
+    $("cameraMsg").hidden = false;
+    $("cameraMsg").textContent = "사진을 만들지 못했어요.\n다시 찍어 주세요.";
+    setCameraActions("ready");
+    setTimeout(() => { $("cameraMsg").hidden = true; }, 2500);
+    return;
+  }
+  framedURL = URL.createObjectURL(framedBlob);
+  $("shot").src = framedURL;
   $("shot").hidden = false;
+  $("overlay").hidden = true;
   $("video").hidden = true;
   setCameraActions("taken");
 }
 
 function clearPhoto() {
-  if (photoURL) URL.revokeObjectURL(photoURL);
-  photoURL = null;
-  photoBlob = null;
+  if (framedURL) URL.revokeObjectURL(framedURL);
+  framedURL = null;
+  framedBlob = null;
 }
 
 // ---------- 화면 3: 결과·공유 ----------
 
 async function openResult() {
-  if (!photoBlob) return;
+  if (!framedBlob) return;
   stopCamera();
-  $("resultShot").src = photoURL;
-  renderTrashLayer();
-  renderBoothTop();
+  $("resultShot").src = framedURL;
   show("result");
 
-  // "다음"을 누르면 쓰레기가 깔린 사진을 이 기기의 컬렉션에 저장해요.
+  // "다음"을 누르면 찍은 사진을 이 기기의 컬렉션에 저장해요.
   const others = await loadGallery();
-  try {
-    framedBlob = await composeFramedPhoto();
-    await savePhoto(framedBlob);
-  } catch (error) {
-    framedBlob = null;
-  }
+  await savePhoto(framedBlob);
   renderGallery(others);
-  prepareShareFile();
-}
-
-function trashAnchorY(top, height, t) {
-  return top + height * (1 - t.bottom / 100);
-}
-
-/** 사진 하단에 쓰레기를 깐 4:3 사진을 만들어요. 컬렉션에 저장하고 공유 이미지에도 써요. */
-async function composeFramedPhoto() {
-  const [photo, ...trashImages] = await Promise.all([
-    loadImage(photoURL),
-    ...TRASH.map((t) => loadImage(`trash/${t.name}.svg`))
-  ]);
-  const canvas = document.createElement("canvas");
-  canvas.width = PHOTO_WIDTH;
-  canvas.height = PHOTO_HEIGHT;
-  const ctx = canvas.getContext("2d");
-  ctx.drawImage(photo, 0, 0, PHOTO_WIDTH, PHOTO_HEIGHT);
-  TRASH.forEach((t, i) => {
-    const img = trashImages[i];
-    const h = PHOTO_HEIGHT * t.h / 100;
-    const w = h * (img.width / img.height);
-    ctx.save();
-    ctx.translate(PHOTO_WIDTH * t.x / 100, trashAnchorY(0, PHOTO_HEIGHT, t));
-    ctx.rotate(t.r * Math.PI / 180);
-    ctx.drawImage(img, -w / 2, -h, w, h);
-    ctx.restore();
-  });
-  return new Promise((resolve, reject) => canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("toBlob")), "image/jpeg", 0.9));
+  shareFile = new File([framedBlob], `plobby-${Date.now()}.jpg`, { type: "image/jpeg" });
+  $("shareError").textContent = "";
 }
 
 // ---------- 컬렉션 ----------
@@ -725,26 +836,6 @@ function renderGallery(photos) {
   thumbs.innerHTML = photos.length
     ? photos.map((p) => `<img src="${URL.createObjectURL(p.blob)}" alt="">`).join("")
     : `<div class="none">첫 번째 사진이에요!</div>`;
-}
-
-function renderTrashLayer() {
-  $("trashLayer").innerHTML = TRASH.map((t) => `
-    <img src="trash/${t.name}.svg" alt="" style="left:${t.x}%;bottom:${t.bottom}%;height:${t.h}%;transform:translateX(-50%) rotate(${t.r}deg)">`).join("");
-}
-
-// 공유 시트는 버튼을 누른 직후에만 열 수 있어요. 그래서 공유 이미지를 화면 3에 들어올 때 미리 만들어 둬요.
-async function prepareShareFile() {
-  shareFile = null;
-  $("shareError").textContent = "";
-  $("shareBtn").disabled = true;
-  try {
-    const blob = await composeShareImage();
-    shareFile = new File([blob], `plobby-${Date.now()}.jpg`, { type: "image/jpeg" });
-  } catch (error) {
-    $("shareError").textContent = "공유 이미지를 만들지 못했어요. 웹사이트 주소(https)로 열어 주세요.";
-  } finally {
-    $("shareBtn").disabled = false;
-  }
 }
 
 $("shareBtn").addEventListener("click", () => {
@@ -782,71 +873,6 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.arcTo(x, y + h, x, y, r);
   ctx.arcTo(x, y, x + w, y, r);
   ctx.closePath();
-}
-
-/** 화면 3과 같은 구성(상단 문구·날짜·로고, 사진, 사진 하단 쓰레기)으로 공유용 이미지를 만들어요. */
-async function composeShareImage() {
-  const W = 1600, P = 80;
-  const photoW = W - P * 2, photoH = photoW * (PHOTO_HEIGHT / PHOTO_WIDTH);
-  const photoX = P, photoY = 300;
-  const H = Math.round(photoY + photoH + P);
-
-  if (!framedBlob) throw new Error("framed photo missing");
-  await document.fonts.ready;
-  const framedURL = URL.createObjectURL(framedBlob);
-  const [photo, logo] = await Promise.all([loadImage(framedURL), loadImage("logo.svg")]);
-  URL.revokeObjectURL(framedURL);
-
-  const canvas = document.createElement("canvas");
-  canvas.width = W;
-  canvas.height = H;
-  const ctx = canvas.getContext("2d");
-  ctx.fillStyle = "#FFFFFF";
-  ctx.fillRect(0, 0, W, H);
-
-  // 좌측 상단: 문구, 현재/목표, 진행 바
-  const collected = goal ? collectedCount(goal) : 0;
-  const target = goal ? goal.target_count : 0;
-  const pct = goal ? progressPercent(goal) : 0;
-  ctx.textBaseline = "top";
-  ctx.fillStyle = "#1C1F23";
-  ctx.font = "800 60px Pretendard, sans-serif";
-  ctx.fillText("우리가 만드는 푸른 바다", P, P);
-  const current = collected.toLocaleString();
-  ctx.fillStyle = "#0E7A4E";
-  ctx.font = "700 44px Pretendard, sans-serif";
-  ctx.fillText(current, P, P + 86);
-  const currentW = ctx.measureText(current).width;
-  ctx.fillStyle = "#6B7280";
-  ctx.font = "500 44px Pretendard, sans-serif";
-  ctx.fillText(`/${target.toLocaleString()}`, P + currentW + 4, P + 86);
-  const barY = P + 156, barW = 640, barH = 22;
-  ctx.fillStyle = "#E5E7EB";
-  roundRect(ctx, P, barY, barW, barH, barH / 2);
-  ctx.fill();
-  if (pct > 0) {
-    ctx.fillStyle = "#0E7A4E";
-    roundRect(ctx, P, barY, Math.max(barH, barW * pct / 100), barH, barH / 2);
-    ctx.fill();
-  }
-
-  // 우측 상단: 날짜, 로고
-  ctx.textAlign = "right";
-  ctx.fillStyle = "#6B7280";
-  ctx.font = "600 40px Pretendard, sans-serif";
-  ctx.fillText(todayText(), W - P, P + 8);
-  ctx.textAlign = "left";
-  const logoH = 72, logoW = logoH * (73 / 23);
-  ctx.drawImage(logo, W - P - logoW, P + 72, logoW, logoH);
-
-  // 쓰레기가 깔린 사진
-  ctx.save();
-  roundRect(ctx, photoX, photoY, photoW, photoH, 48);
-  ctx.clip();
-  ctx.drawImage(photo, photoX, photoY, photoW, photoH);
-  ctx.restore();
-
-  return new Promise((resolve, reject) => canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("toBlob")), "image/jpeg", 0.92));
 }
 
 // ---------- 촬영 기기에 사진 모아두기 (IndexedDB) ----------
