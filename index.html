@@ -997,8 +997,9 @@ async function loadGallery(limit = GALLERY_LIMIT) {
   }
 }
 
-// 2026-11-18 이전에 찍은 사진은 기기마다 한 번만 지워요. 이후에 찍은 사진은 그대로 남아요.
-const PHOTO_RESET_KEY = "plobby-booth-reset-2026-11-18";
+// 이 키가 바뀐 뒤 처음 열 때, 그 기기에 저장된 사진을 한 번만 지워요. 이후에 찍은 사진은 그대로 남아요.
+// 사진을 다시 비우고 싶으면 키의 날짜를 바꿔서 배포하면 돼요.
+const PHOTO_RESET_KEY = "plobby-booth-reset-2026-11-19";
 try {
   if (!localStorage.getItem(PHOTO_RESET_KEY)) {
     indexedDB.deleteDatabase("plobby-booth");
